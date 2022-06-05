@@ -7,7 +7,7 @@ int main(int argc, char* argv[]){
 
     SDL_Init(SDL_INIT_VIDEO);       
 
-    // Create an application window with the following settings:
+    // Crea una ventana 
     window = SDL_CreateWindow(
         "Space Invaders",                  
         SDL_WINDOWPOS_UNDEFINED,           
@@ -17,14 +17,14 @@ int main(int argc, char* argv[]){
         SDL_WINDOW_OPENGL
     );
 
-    // Check that the window was successfully created
+    // Verifica si la ventana se creó correctamente
     if (window == NULL) {
-        // In the case that the window could not be made...
+        // Imprime el error correspondiente
         printf("Could not create window: %s\n", SDL_GetError());
         return 1;
     }
 
-    // Close and destroy the window
+    // Cierra la ventana
     SDL_DestroyWindow(window);
 
 	SDL_Quit();
