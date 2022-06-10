@@ -1,56 +1,91 @@
+//cambios de la megumin 
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
 
+#define XSIZE 600
+#define YSIZE 600
+#define MS 10
+
+typedef struct Nave Nave;
+typedef struct Misil Misil;
+
+struct Nave{
+	int x1,y1;
+	int x2,y2;
+	int x3,y3;
+	int vx,vy;
+	Misil *misiles;
+};
+
+struct Misil{
+	int x1,y1;
+	int x1,y2;
+	int vx,vy;
+};
+
 int main(int argc, char* argv[]){
-
-    SDL_Window *window;
-
-    SDL_Init(SDL_INIT_VIDEO);       
-
-    // Create an application window with the following settings:
-    window = SDL_CreateWindow(
-        "Space Invaders",                  
-        SDL_WINDOWPOS_UNDEFINED,           
-        SDL_WINDOWPOS_UNDEFINED,           
-        640,                               
-        480,                               
-        SDL_WINDOW_OPENGL
-    );
-
-    // Check that the window was successfully created
-    if (window == NULL) {
-        // In the case that the window could not be made...
-        printf("Could not create window: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    // Create a Renderer
-    SDL_Renderer* rend = SDL_CreateRenderer(
-        window,
-        -1,
-        SDL_RENDERER_ACCELERATED || SDL_RENDERER_PRESENTVSYNC
-    );
-
-    //Load Images
-    SDL_Surface* surface = IMG_Load("Resources/Sprites/Nave_new.png"); 
-
-    //Create textures from surface
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(rend, surface);
-    SDL_FreeSurface(surface);
-
-    // Clear the window
-    SDL_RenderClear(rend);
-
-    SDL_RenderCopy(rend, texture, NULL, NULL);
-    SDL_RenderPresent(rend);
-
-    SDL_Delay(5000);
-    // Close and destroy the window
-    SDL_DestroyTexture(texture);
-    SDL_DestroyWindow(window);
-
+	if(SDL_Init(SDL_INIT_EVERYTHING)<0){
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error",SDL_GetError(),NULL);
+	}else{
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,"Space Invaders","GAME READY",NULL);
+	}
+	
+	int typeEvent;
+	int gameOver;
+	
+	const unsigned char *keys;
+	
+	SDL_Window *window;
+	SDL_Renderer *renderer;
+	SDL_Event event;
+	
+	window= SDL_CreateWindow("Space Invaders",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,XSIZE,YSIZE,SDL_WINDOW_SHOWN);
+	
+	renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED);
+	
+	gameOver=0;
+	
+	keys=SDL_GetKeyboardState(NULL);
+	
+	while(!gameOver){
+		if(SDL_PollEvent(&event)){
+			typeEvent=event.type;
+			if(typeEvent== SDL_QUIT){
+				gameOver=1;
+			}else if(typeEvent==SDL_MOUSEBUTTONDOWN){
+				if(SDL_GetMouseState(NULL,NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){
+					//gameOver=1;
+				}
+				
+			}else if(typeEvent == SDL_KEYDOWN){
+				if(keys[SDL_SCANCODE_ESCAPE]){
+					gameOver=1;
+				}else if(keys[SDL_SCANCODE_LEFT]){
+				
+				}else if(keys[SDL_SCANCODE_RIGHT]){
+				
+				}else if(keys[SDL_SCANCODE_SPACE]){
+				
+				}
+			}		
+		}
+		//pantalla
+		SDL_SetRenderDrawColor(renderer,0,0,0,0); //pinta la pantalla negra
+		SDL_RenderClear(renderer);
+		SDL_RenderPresent(renderer);
+		SDL_Delay(MS);
+		
+		
+	}
+	
+	
+	
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
 	SDL_Quit();
+	
 	return 0;
 }
+//EXPLOOOOOOOSION
