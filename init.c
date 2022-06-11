@@ -23,7 +23,7 @@ struct Nave{ //la nave es un triangulo,cada punto es un vertice
 
 struct Misil{ //el misil es una linea, por eso son dos puntos, y vx y vy son las velocidades en los ejes
 	int x1,y1;
-	int x1,y2;
+	int x2,y2;
 	int vx,vy;
 };
 
