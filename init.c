@@ -45,6 +45,16 @@ struct Misil{
 //recibe los misiles
 void MisilBorraObsoletos(Misil *misiles);
 
+//En resumen, carga una textura y la guarda en un puntero(?
+SDL_Texture* LoadTexture(const char* filepath, SDL_Renderer* renderTarget){
+	SDL_Texture* texture = NULL;
+	SDL_Surface* surface = IMG_Load(filepath);
+	texture = SDL_CreateTextureFromSurface(renderTarget, surface);
+	SDL_FreeSurface(surface);
+
+	return texture;
+}
+
 //esta funcion hace que los misiles avancen, anvanza por el eje y
 void MisilAvanza(Misil *misil);
 
