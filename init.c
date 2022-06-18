@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
+#include <math.h>
 //crea variables globales
 //tamaño de ventana
 #define XSIZE 1280
@@ -41,10 +42,6 @@ struct Misil{
 };
 //las funciones estan definidas al final 
 
-//esta funcion elimina los misiles que salgan de la pantalla que estan ocupando memoria dinamica
-//recibe los misiles
-void MisilBorraObsoletos(Misil *misiles);
-
 //En resumen, carga una textura y la guarda en un puntero(?
 SDL_Texture* LoadTexture(const char* filepath, SDL_Renderer* renderTarget){
 	SDL_Texture* texture = NULL;
@@ -54,13 +51,15 @@ SDL_Texture* LoadTexture(const char* filepath, SDL_Renderer* renderTarget){
 
 	return texture;
 }
+//esta funcion elimina los misiles que salgan de la pantalla que estan ocupando memoria dinamica
+//recibe los misiles
+void MisilBorraObsoletos(Misil *misiles);
 
+void NaveAvanzaArrAba(Nave *nave, SDL_Rect *ship);
+
+void NaveAvanzaIzqDer(Nave *nave, SDL_Rect *ship);
 //esta funcion hace que los misiles avancen, anvanza por el eje y
 void MisilAvanza(Misil *misil);
-
-//funciones para el movimiento de la nave
-void NaveAvanzaIzqDer(Nave *nave);
-void NaveAvanzaArrAba(Nave *nave);
 
 //funcion que pinta el borde de la nave (dibuja el triangulo)
 void NavePinta(Nave *nave, SDL_Renderer *renderer);
@@ -105,6 +104,16 @@ renderer renderiza la imagen en la ventana
 	
 	keys=SDL_GetKeyboardState(NULL);//se le asigna a keys la funcion GetKeyboardState, que detecta que tecla fue pulsada, la tecla presionada se guarda en key
 	
+	SDL_Texture* ship_texture = LoadTexture("Resources/Sprites/Nave_new.png", renderer);
+	SDL_Rect ship;
+
+	//pide la posición inicial de la nave (cambiar xsize)
+	float x_pos = XSIZE;
+	//Posiciona el sprite de la nave
+	ship.x = ((XSIZE - ship.w) /2);
+	ship.y = ((YSIZE - ship.h) /2);
+
+
 	while(!gameOver){//se niega gameOver para que se considere verdadera, mientras sea "verdadera" tb se puede usar la condicion gameOver==0
 		if(SDL_PollEvent(&event)){ //si se detecta la pulsacion de una tecla
 			typeEvent=event.type; //ve que tipo de tecla se pulso
@@ -120,25 +129,31 @@ renderer renderiza la imagen en la ventana
 					gameOver=1; //si la tecla es ESC el juego termina
 				}else if(keys[SDL_SCANCODE_LEFT]){ //si es la flecha izquierda, la nave se mueve hacia la izquierda
 					nave.vx=-abs(nave.vx); //la velocidad de la nave en el eje x se vuelve negativa
-					NaveAvanzaIzqDer(&nave); //la nave se mueve
+					NaveAvanzaIzqDer(&nave, &ship); //la nave se mueve
 				}else if(keys[SDL_SCANCODE_RIGHT]){ //movimiento hacia la derecha
 					nave.vx=+abs(nave.vx); //la velocidad de la nave se hace positiva
-					NaveAvanzaIzqDer(&nave); //la nave se mueve
+					NaveAvanzaIzqDer(&nave, &ship); //la nave se mueve
 				}else if(keys[SDL_SCANCODE_SPACE]){ //si se presiona el espacio
 					NaveDispara(&nave); //la nave dispara
 				}else if(keys[SDL_SCANCODE_UP]){ //la nave sube
 					nave.vy=-abs(nave.vy); //para que la nave suba, la velocidad en el eje y debe ser negativa, ni idea pq
-					NaveAvanzaArrAba(&nave); //la nave sube
+					NaveAvanzaArrAba(&nave, &ship); //la nave sube
 				}else if(keys[SDL_SCANCODE_DOWN]){ //la nave baja
 					nave.vy=+abs(nave.vy); //para que baje la aceleracion debe ser positiva
-					NaveAvanzaArrAba(&nave); //la nave baja
+					NaveAvanzaArrAba(&nave, &ship); //la nave baja
 				}
 			}		
 		}
 		MisilBorraObsoletos(nave.misiles); // luego de cada movimiento, se borran los misiles que no aparezcan en pantalla
 		//pantalla
+
+
+		//Pide info de texturas
+		SDL_QueryTexture(ship_texture, NULL, NULL, &ship.w, &ship.h);
+
 		SDL_SetRenderDrawColor(renderer,0,0,0,0); //pinta la pantalla negra
 		SDL_RenderClear(renderer);
+		SDL_RenderCopy(renderer, ship_texture, NULL, &ship);
 		//pinta la nave de blanco
 		SDL_SetRenderDrawColor(renderer,255,255,255,0);
 		NavePinta(&nave,renderer);
@@ -146,7 +161,6 @@ renderer renderiza la imagen en la ventana
 		SDL_RenderPresent(renderer);
 		SDL_Delay(MS);		
 	}
-	
 	
 	//finaliza todo
 	SDL_DestroyRenderer(renderer);
@@ -181,14 +195,17 @@ void NavePinta(Nave *nave, SDL_Renderer *renderer){
 //para moverse de izquierda a derecha, dependera de la velocidad en el eje x
 //si la velocidad en el eje x es negativa se mueve hacia la izquierda
 //en caso contrario se mueve hacia la derecha
-void NaveAvanzaIzqDer(Nave *nave){
+double a = 0;
+void NaveAvanzaIzqDer(Nave *nave, SDL_Rect *ship){
+	ship->x += nave->vx;
 	nave->x1+=nave->vx;
 	nave->x2+=nave->vx;
 	nave->x3+=nave->vx;
 }
 //ocurre lo mismo que en el movimiento horizontal, solo que si la velocidad es negativa
 //la nave sube, y si es positiva la nave baja
-void NaveAvanzaArrAba(Nave *nave){
+void NaveAvanzaArrAba(Nave *nave, SDL_Rect *ship){
+	ship->y += nave->vy;
 	nave->y1+=nave->vy;
 	nave->y2+=nave->vy;
 	nave->y3+=nave->vy;
@@ -235,7 +252,7 @@ void MisilAvanza(Misil *misil){
 //mientras hayan misiles, si estan fuera de la pantalla los borra
 //en caso contrario no hace nada
 //creo que era asi
-void void MisilBorraObsoletos(Misil *misiles){
+void MisilBorraObsoletos(Misil *misiles){
 	Misil * ixMisil=misiles;
 	if(ixMisil==NULL){
 		return;
