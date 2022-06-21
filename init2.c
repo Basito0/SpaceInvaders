@@ -110,16 +110,16 @@ renderer renderiza la imagen en la ventana
 	//Variables para el movimiento de la nave
 	float ox, oy;
 	double radio = 100;
-	ox = XSIZE/2 + radio;
-	oy = YSIZE/2 + radio;
+	ox = (XSIZE - ship.w)/2 + radio;
+	oy = (YSIZE - ship.h)/2 + radio;
 	double delta = asin(0);
 
 	//pide la posición inicial de la nave (cambiar xsize)
 
 	float x_pos = XSIZE;
 	//Posiciona el sprite de la nave
-	ship.x = (ox - ship.w);
-	ship.y = (oy - ship.h);
+	ship.x = (int)(radio*sin(delta) + XSIZE/2);
+	ship.y = (int)(radio*cos(delta) + YSIZE/2);
 
 
 
@@ -207,6 +207,7 @@ void NavePinta(Nave *nave, SDL_Renderer *renderer){
 void NaveAvanzaIzqDer(Nave *nave, SDL_Rect *ship, int *vx, double *radio, double *delta){
 	*delta += *vx*M_PI/30;
 	ship->x = (int)(*radio*sin(*delta) + XSIZE/2);
+	ship->y = (int)(*radio*cos(*delta) + YSIZE/2);
 	printf("%d\n %d\n", ship->x, ship->y);
 
 
