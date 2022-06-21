@@ -6,8 +6,8 @@
 #include <math.h>
 //crea variables globales
 //tamaño de ventana
-#define XSIZE 1280
-#define YSIZE 720
+#define XSIZE 600
+#define YSIZE 400
 //tiempo de espera en milisegundos
 #define MS 10
 //tamaño y velocidad de la nave
@@ -113,10 +113,7 @@ renderer renderiza la imagen en la ventana
 	ox = (XSIZE - ship.w)/2 + radio;
 	oy = (YSIZE - ship.h)/2 + radio;
 	double delta = asin(0);
-
-	//pide la posición inicial de la nave (cambiar xsize)
-
-	float x_pos = XSIZE;
+	
 	//Posiciona el sprite de la nave
 	ship.x = (int)(radio*sin(delta) + XSIZE/2);
 	ship.y = (int)(radio*cos(delta) + YSIZE/2);
