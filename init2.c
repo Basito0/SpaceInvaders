@@ -57,7 +57,7 @@ void MisilBorraObsoletos(Misil *misiles);
 
 void NaveAvanzaArrAba(Nave *nave, SDL_Rect *ship, double *radio, double *delta);
 
-void NaveAvanzaIzqDer(Nave *nave, SDL_Rect *ship, double *radio, double *delta);
+void NaveAvanzaIzqDer(Nave *nave, SDL_Rect *ship, int *vx, double *radio, double *delta);
 //esta funcion hace que los misiles avancen, anvanza por el eje y
 void MisilAvanza(Misil *misil);
 
@@ -112,9 +112,10 @@ renderer renderiza la imagen en la ventana
 	double radio = 100;
 	ox = XSIZE/2 + radio;
 	oy = YSIZE/2 + radio;
-	double delta = acos(1);
+	double delta = asin(0);
 
 	//pide la posición inicial de la nave (cambiar xsize)
+
 	float x_pos = XSIZE;
 	//Posiciona el sprite de la nave
 	ship.x = (ox - ship.w);
@@ -136,11 +137,11 @@ renderer renderiza la imagen en la ventana
 				if(keys[SDL_SCANCODE_ESCAPE]){	//guarda el tipo de tecla en keys
 					gameOver=1; //si la tecla es ESC el juego termina
 				}else if(keys[SDL_SCANCODE_LEFT]){ //si es la flecha izquierda, la nave se mueve hacia la izquierda
-					nave.vx=-abs(nave.vx); //la velocidad de la nave en el eje x se vuelve negativa
-					NaveAvanzaIzqDer(&nave, &ship, &radio, &delta); //la nave se mueve
+					int vx = -1; //la velocidad de la nave en el eje x se vuelve negativa
+					NaveAvanzaIzqDer(&nave, &ship, &vx, &radio, &delta); //la nave se mueve
 				}else if(keys[SDL_SCANCODE_RIGHT]){ //movimiento hacia la derecha
-					nave.vx=+abs(nave.vx); //la velocidad de la nave se hace positiva
-					NaveAvanzaIzqDer(&nave, &ship, &radio, &delta); //la nave se mueve
+					int vx = 1; //la velocidad de la nave se hace positiva
+					NaveAvanzaIzqDer(&nave, &ship, &vx, &radio, &delta); //la nave se mueve
 				}else if(keys[SDL_SCANCODE_SPACE]){ //si se presiona el espacio
 					NaveDispara(&nave); //la nave dispara
 				}else if(keys[SDL_SCANCODE_UP]){ //la nave sube
@@ -203,10 +204,9 @@ void NavePinta(Nave *nave, SDL_Renderer *renderer){
 //para moverse de izquierda a derecha, dependera de la velocidad en el eje x
 //si la velocidad en el eje x es negativa se mueve hacia la izquierda
 //en caso contrario se mueve hacia la derecha
-void NaveAvanzaIzqDer(Nave *nave, SDL_Rect *ship, double *radio, double *delta){
-	*delta += M_PI_4;
-	ship->x = (int)(*radio*cos(*delta));
-	ship->y = (int)(*radio*cos(*delta));
+void NaveAvanzaIzqDer(Nave *nave, SDL_Rect *ship, int *vx, double *radio, double *delta){
+	*delta += *vx*M_PI/30;
+	ship->x = (int)(*radio*sin(*delta) + XSIZE/2);
 	printf("%d\n %d\n", ship->x, ship->y);
 
 
