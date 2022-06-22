@@ -30,7 +30,7 @@ SDL_Texture* LoadTexture(const char* filepath, SDL_Renderer* renderTarget){
 void NaveAvanzaIzqDer(SDL_Rect *ship, int *vx, double *radio, double *delta);
 
 //funcion que hace que la nave dispare
-void NaveDispara(SDL_Rect *ship, SDL_Rect p_bullet[], SDL_Renderer *renderer);
+void NaveDispara(SDL_Rect *ship, SDL_Rect p_bullet[], int balas[1000][3],SDL_Renderer *renderer, SDL_Texture *texture);
 
 int main(int argc, char* argv[]){
 	//si SDL no se inicia lanza una ventana de error
@@ -68,6 +68,7 @@ renderer renderiza la imagen en la ventana
 	
 	//ACA ASIGNAMOS TEXTURAS Y COLISIONES
 	SDL_Texture* ship_texture = LoadTexture("Resources/Sprites/Nave_new.png", renderer);
+	SDL_Texture* b_Texture = LoadTexture("Resources/Sprites/Bullet_01.png", renderer);
 	SDL_Rect ship;
 
 
@@ -83,11 +84,15 @@ renderer renderiza la imagen en la ventana
 	ship.x = (int)(radio*sin(delta) + XSIZE/2);
 	ship.y = (int)(radio*cos(delta) + YSIZE/2);
 
-	//Balas del jugador
+	//Balas del jugador, velocidad en x e y
+	int balas[1000][3];
 	SDL_Rect p_bullet[1000];
 
 
 	while(!gameOver){//se niega gameOver para que se considere verdadera, mientras sea "verdadera" tb se puede usar la condicion gameOver==0
+		
+		//RenderClear limpia la ventana con un color X
+		SDL_RenderClear(renderer);
 		if(SDL_PollEvent(&event)){ //si se detecta la pulsacion de una tecla
 			typeEvent=event.type; //ve que tipo de tecla se pulso
 			if(typeEvent== SDL_QUIT){ //si se presiono la x que cierra la ventana
@@ -95,7 +100,7 @@ renderer renderiza la imagen en la ventana
 			}
 			else if(typeEvent==SDL_MOUSEBUTTONDOWN){ //si se detecta la pulsacion del mouse
 				if(SDL_GetMouseState(NULL,NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){ //si es el clicl izq
-					NaveDispara(&ship, p_bullet, renderer); //la nave dispara
+					NaveDispara(&ship, p_bullet, balas, renderer, b_Texture); //la nave dispara
 				}
 				
 			}
@@ -109,7 +114,7 @@ renderer renderiza la imagen en la ventana
 					int vx = 1; //la velocidad de la nave se hace positiva
 					NaveAvanzaIzqDer(&ship, &vx, &radio, &delta); //la nave se mueve
 				}else if(keys[SDL_SCANCODE_SPACE]){ //si se presiona el espacio
-					NaveDispara(&ship, p_bullet, renderer); //la nave dispara
+					NaveDispara(&ship, p_bullet, balas, renderer, b_Texture); //la nave dispara
 				}
 			}		
 		}
@@ -117,7 +122,17 @@ renderer renderiza la imagen en la ventana
 		//Pide info de texturas
 		SDL_QueryTexture(ship_texture, NULL, NULL, &ship.w, &ship.h);
 
-		SDL_RenderClear(renderer);
+		for (int i = 0; i < 1000; i++)
+		{
+			if (balas[i][0] == 1)
+			{
+				p_bullet[i].x += balas[i][1]/10;
+				p_bullet[i].y += balas[i][2]/10;
+				SDL_QueryTexture(b_Texture, NULL, NULL, &p_bullet[i].w, &p_bullet[i].h);
+				SDL_RenderCopy(renderer, b_Texture, NULL, &p_bullet[i]);
+			}
+		}
+
 		SDL_RenderCopy(renderer, ship_texture, NULL, &ship);
 		//presenta la imagen, creo
 		SDL_RenderPresent(renderer);
@@ -144,16 +159,32 @@ void NaveAvanzaIzqDer(SDL_Rect *ship, int *vx, double *radio, double *delta){
 //en resumen, en esta parte se crea un arreglo de misiles con memoria dinamica
 //el primer if verifica si la nave tiene misiles ir a (** mas arriba), la configure para que parta sin misiles
 //luego, en el else, si no tiene misiles, los crea y los guarda en la nave
-void NaveDispara(SDL_Rect *ship, SDL_Rect *p_bullet, SDL_Renderer *renderer){
+void NaveDispara(SDL_Rect *ship, SDL_Rect *p_bullet, int balas[1000][3], SDL_Renderer *renderer, SDL_Texture *texture){
 
-	p_bullet[0].x = ship->x;
-	p_bullet[0].y = ship->y;
-	SDL_Texture* b_Texture = LoadTexture("Resources/Sprites/Nave_new.png", renderer);
+	for (int i = 0; i < 1000; i++)
+	{
+		//1 significa inicializado. 0 es una bala disponible
+		if(balas[i][0] == 0){
+			balas[i][0] = 1;
+			p_bullet[i].x = ship->x;
+			p_bullet[i].y = ship->y;
 
-	SDL_QueryTexture(b_Texture, NULL, NULL, &p_bullet[0].w, &p_bullet[0].h);
-	SDL_RenderClear(renderer);
-	SDL_RenderCopy(renderer, b_Texture, NULL, &p_bullet[0]);
+			//Calcula la velocidad de la bala
+			balas[i][1] = -1*(p_bullet[i].x - (XSIZE/2));
+			balas[i][2] = -1*(p_bullet[i].y - (YSIZE/2));
+
+			//Dibuja la bala en pantalla
+			SDL_QueryTexture(texture, NULL, NULL, &p_bullet[i].w, &p_bullet[i].h);
+			SDL_RenderCopy(renderer, texture, NULL, &p_bullet[i]);
+			break;
+		}
+	}
+
 	printf("AAA");
+}
+
+void BulletMovement(){
+
 }
 
 
