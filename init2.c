@@ -122,6 +122,7 @@ renderer renderiza la imagen en la ventana
 		//Pide info de texturas
 		SDL_QueryTexture(ship_texture, NULL, NULL, &ship.w, &ship.h);
 
+		//Hace cosas con las balas del jugador
 		for (int i = 0; i < 1000; i++)
 		{
 			if (balas[i][0] == 1)
@@ -130,6 +131,9 @@ renderer renderiza la imagen en la ventana
 				p_bullet[i].y += balas[i][2]/10;
 				SDL_QueryTexture(b_Texture, NULL, NULL, &p_bullet[i].w, &p_bullet[i].h);
 				SDL_RenderCopy(renderer, b_Texture, NULL, &p_bullet[i]);
+			}
+			if (p_bullet[i].x < 0 || p_bullet[i].y < 0 || p_bullet[i].x > XSIZE || p_bullet[i].y > YSIZE){
+				balas[i][0] = 0;
 			}
 		}
 
