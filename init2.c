@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 #include <math.h>
 //crea variables globales
 //tamaño de ventana
@@ -60,7 +61,12 @@ renderer renderiza la imagen en la ventana
 	
 	window= SDL_CreateWindow("Space Invaders",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,XSIZE,YSIZE,SDL_WINDOW_SHOWN);
 	
-	renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED);
+//Initialize SDL_mixer
+    if( Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) < 0){
+        printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+    }
+
+	renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	
 	gameOver=0;//le asigna 0 a la variable gameOver (0 es Falso)
 	
@@ -71,7 +77,16 @@ renderer renderiza la imagen en la ventana
 	SDL_Texture* b_Texture = LoadTexture("Resources/Sprites/Bullet_01.png", renderer);
 	SDL_Rect ship;
 
+	//Punteros para música
+	Mix_Music *tema = NULL;
 
+	//Para efectos de sonido
+	Mix_Chunk *gScratch = NULL;
+	Mix_Chunk *gHigh = NULL;
+	Mix_Chunk *gMedium = NULL;
+	Mix_Chunk *gLow = NULL;
+
+	tema = Mix_LoadMUS("Resources/Audio/Music/Long_live_the_new_fresh.wav");
 
 	//Variables para el movimiento de la nave
 	float ox, oy;
@@ -115,6 +130,8 @@ renderer renderiza la imagen en la ventana
 					NaveAvanzaIzqDer(&ship, &vx, &radio, &delta); //la nave se mueve
 				}else if(keys[SDL_SCANCODE_SPACE]){ //si se presiona el espacio
 					NaveDispara(&ship, p_bullet, balas, renderer, b_Texture); //la nave dispara
+					//Play the music
+        			Mix_PlayMusic(tema, -1 );
 				}
 			}		
 		}
@@ -146,6 +163,7 @@ renderer renderiza la imagen en la ventana
 	//finaliza todo
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+	Mix_Quit();
 	SDL_Quit();
 	
 	return 0;
@@ -155,7 +173,14 @@ renderer renderiza la imagen en la ventana
 //si la velocidad en el eje x es negativa se mueve hacia la izquierda
 //en caso contrario se mueve hacia la derecha
 void NaveAvanzaIzqDer(SDL_Rect *ship, int *vx, double *radio, double *delta){
+	const unsigned char *keys;
+	keys=SDL_GetKeyboardState(NULL);
+
 	*delta += *vx*M_PI/30;
+	
+	if(keys[SDL_SCANCODE_SPACE]){ //si se presiona el espacio
+		*delta += *vx*M_PI/10;
+	}
 	ship->x = (int)(*radio*sin(*delta) + (XSIZE - ship->w)/2);
 	ship->y = (int)(*radio*cos(*delta) + (YSIZE - ship->h)/2);
 }
@@ -183,8 +208,6 @@ void NaveDispara(SDL_Rect *ship, SDL_Rect *p_bullet, int balas[1000][3], SDL_Ren
 			break;
 		}
 	}
-
-	printf("AAA");
 }
 
 void BulletMovement(){
