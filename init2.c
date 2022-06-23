@@ -169,6 +169,10 @@ int main(int argc, char* argv[]){
 		//Hace cosas con las balas del jugador
 		for (int i = 0; i < 10; i++)
 		{
+			if (balas[i][0] == 0){
+				p_bullet[i].x = XSIZE;
+				p_bullet[i].y = YSIZE;
+			}
 			if (balas[i][0] == 1)
 			{
 				p_bullet[i].x += balas[i][1]/10;
@@ -184,15 +188,29 @@ int main(int argc, char* argv[]){
 		//Hace cosas con los aliens
 		for (int i = 0; i < 100; i++)
 		{
+			if (alieninfo[i][0] == 0){
+				aliens[i].x = 0;
+				aliens[i].y = 0;
+			}
 			if (alieninfo[i][0] == 1)
 			{
+				for(int u=0; u<10; u++){
+					if(SDL_HasIntersection(&p_bullet[u], &aliens[i]) == SDL_TRUE){
+						alieninfo[i][0] = 0;
+						balas[u][0] = 0;
+					}
+				}
+				if(SDL_HasIntersection(&ship, &aliens[i]) == SDL_TRUE){
+					alieninfo[i][0] = 0;
+				}
+
 				if(alieninfo[i][1] == 1){
 					aliens[i].x += alieninfo[i][4];
 					aliens[i].y += alieninfo[i][5];
 				}
 				if(alieninfo[i][1] == 2){
-					alieninfo[i][3] += 1;
-					alieninfo[i][2] += 1*M_PI/60;
+					alieninfo[i][3] += (0.1);
+					alieninfo[i][2] += 1*M_PI/120;
 					aliens[i].x = (int)(alieninfo[i][3]*sin(alieninfo[i][2]) + (XSIZE - aliens->w)/2);
 					aliens[i].y = (int)(alieninfo[i][3]*cos(alieninfo[i][2]) + (YSIZE - aliens->h)/2);
 				}
@@ -274,6 +292,9 @@ void AlienSpawn(SDL_Rect *ship, SDL_Rect *aliens, double alieninfo[100][6], Uint
 	{
 		//1 significa inicializado. 0 es una bala disponible
 		if(alieninfo[i][0] == 0 && tiempo_actual - *spawntime > 100){
+			alieninfo[i][0] = 1;
+			aliens[i].x = XSIZE/2;
+			aliens[i].y = YSIZE/2 - 1;
 			if(tipo <= 50){
 				alieninfo[i][1] = 1;
 				alieninfo[i][4] = (ship->x - (XSIZE + ship->w)/2)/20;
@@ -284,9 +305,6 @@ void AlienSpawn(SDL_Rect *ship, SDL_Rect *aliens, double alieninfo[100][6], Uint
 				alieninfo[i][2] = 0;
 				alieninfo[i][3] = 1;
 			}
-			alieninfo[i][0] = 1;
-			aliens[i].x = XSIZE/2;
-			aliens[i].y = YSIZE/2 - 1;
 
 			*spawntime = tiempo_actual;
 			break;
