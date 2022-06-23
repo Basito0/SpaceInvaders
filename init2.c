@@ -31,7 +31,7 @@ SDL_Texture* LoadTexture(const char* filepath, SDL_Renderer* renderTarget){
 void NaveAvanzaIzqDer(Uint32 *dash, SDL_Rect *ship, int *vx, double *radio, double *delta);
 
 //funcion que hace que la nave dispare
-void NaveDispara(SDL_Rect *ship, SDL_Rect p_bullet[], int balas[1000][3],SDL_Renderer *renderer, SDL_Texture *texture);
+void NaveDispara(Uint32 *time, SDL_Rect *ship, SDL_Rect p_bullet[], int balas[1000][3],SDL_Renderer *renderer, SDL_Texture *texture);
 
 int main(int argc, char* argv[]){
 	//si SDL no se inicia lanza una ventana de error
@@ -104,7 +104,8 @@ renderer renderiza la imagen en la ventana
 	SDL_Rect p_bullet[1000];
 
 	//comienza un contador
-	Uint32 dashtime = SDL_GetTicks();
+	Uint32 dashTime = SDL_GetTicks();
+	Uint32 bulletTime = SDL_GetTicks();
 
 
 	while(!gameOver){//se niega gameOver para que se considere verdadera, mientras sea "verdadera" tb se puede usar la condicion gameOver==0
@@ -118,7 +119,7 @@ renderer renderiza la imagen en la ventana
 			}
 			else if(typeEvent==SDL_MOUSEBUTTONDOWN){ //si se detecta la pulsacion del mouse
 				if(SDL_GetMouseState(NULL,NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){ //si es el clicl izq
-					NaveDispara(&ship, p_bullet, balas, renderer, b_Texture); //la nave dispara
+					NaveDispara(&bulletTime, &ship, p_bullet, balas, renderer, b_Texture); //la nave dispara
 				}
 				
 			}
@@ -127,12 +128,12 @@ renderer renderiza la imagen en la ventana
 					gameOver=1; //si la tecla es ESC el juego termina
 				}else if(keys[SDL_SCANCODE_LEFT]){ //si es la flecha izquierda, la nave se mueve hacia la izquierda
 					int vx = -1; //la velocidad de la nave en el eje x se vuelve negativa
-					NaveAvanzaIzqDer(&dashtime, &ship, &vx, &radio, &delta); //la nave se mueve
+					NaveAvanzaIzqDer(&dashTime, &ship, &vx, &radio, &delta); //la nave se mueve
 				}else if(keys[SDL_SCANCODE_RIGHT]){ //movimiento hacia la derecha
 					int vx = 1; //la velocidad de la nave se hace positiva
-					NaveAvanzaIzqDer(&dashtime, &ship, &vx, &radio, &delta); //la nave se mueve
+					NaveAvanzaIzqDer(&dashTime, &ship, &vx, &radio, &delta); //la nave se mueve
 				}else if(keys[SDL_SCANCODE_SPACE]){ //si se presiona el espacio
-					NaveDispara(&ship, p_bullet, balas, renderer, b_Texture); //la nave dispara
+					NaveDispara(&bulletTime, &ship, p_bullet, balas, renderer, b_Texture); //la nave dispara
 					//Play the music
         			Mix_PlayMusic(tema, -1 );
 				}
@@ -181,8 +182,6 @@ void NaveAvanzaIzqDer(Uint32 *dash, SDL_Rect *ship, int *vx, double *radio, doub
 	const unsigned char *keys;
 	keys=SDL_GetKeyboardState(NULL);
 
-	printf("%u ", tiempo_actual - *dash);
-
 	*delta += *vx*M_PI/45;
 
 	if(keys[SDL_SCANCODE_SPACE] && (tiempo_actual - *dash) > 2000){ //si se presiona el espacio y han pasado x segundos
@@ -194,12 +193,13 @@ void NaveAvanzaIzqDer(Uint32 *dash, SDL_Rect *ship, int *vx, double *radio, doub
 }
 
 
-void NaveDispara(SDL_Rect *ship, SDL_Rect *p_bullet, int balas[1000][3], SDL_Renderer *renderer, SDL_Texture *texture){
+void NaveDispara(Uint32 *time, SDL_Rect *ship, SDL_Rect *p_bullet, int balas[1000][3], SDL_Renderer *renderer, SDL_Texture *texture){
 
+	Uint32 tiempo_actual = SDL_GetTicks();
 	for (int i = 0; i < 1000; i++)
 	{
 		//1 significa inicializado. 0 es una bala disponible
-		if(balas[i][0] == 0){
+		if(balas[i][0] == 0 && (tiempo_actual - *time) > 500){
 			balas[i][0] = 1;
 			p_bullet[i].x = ship->x;
 			p_bullet[i].y = ship->y;
@@ -211,14 +211,12 @@ void NaveDispara(SDL_Rect *ship, SDL_Rect *p_bullet, int balas[1000][3], SDL_Ren
 			//Dibuja la bala en pantalla
 			SDL_QueryTexture(texture, NULL, NULL, &p_bullet[i].w, &p_bullet[i].h);
 			SDL_RenderCopy(renderer, texture, NULL, &p_bullet[i]);
+
+			//reinicia time
+			*time = tiempo_actual;
 			break;
 		}
 	}
 }
-
-void BulletMovement(){
-
-}
-
 
 //EXPLOOOOOSION
