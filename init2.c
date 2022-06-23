@@ -28,7 +28,7 @@ SDL_Texture* LoadTexture(const char* filepath, SDL_Renderer* renderTarget){
 }
 
 //Función que mueve la nave de forma circunferencial
-void NaveAvanzaIzqDer(SDL_Rect *ship, int *vx, double *radio, double *delta);
+void NaveAvanzaIzqDer(Uint32 *dash, SDL_Rect *ship, int *vx, double *radio, double *delta);
 
 //funcion que hace que la nave dispare
 void NaveDispara(SDL_Rect *ship, SDL_Rect p_bullet[], int balas[1000][3],SDL_Renderer *renderer, SDL_Texture *texture);
@@ -103,6 +103,9 @@ renderer renderiza la imagen en la ventana
 	int balas[1000][3];
 	SDL_Rect p_bullet[1000];
 
+	//comienza un contador
+	Uint32 dashtime = SDL_GetTicks();
+
 
 	while(!gameOver){//se niega gameOver para que se considere verdadera, mientras sea "verdadera" tb se puede usar la condicion gameOver==0
 		
@@ -124,10 +127,10 @@ renderer renderiza la imagen en la ventana
 					gameOver=1; //si la tecla es ESC el juego termina
 				}else if(keys[SDL_SCANCODE_LEFT]){ //si es la flecha izquierda, la nave se mueve hacia la izquierda
 					int vx = -1; //la velocidad de la nave en el eje x se vuelve negativa
-					NaveAvanzaIzqDer(&ship, &vx, &radio, &delta); //la nave se mueve
+					NaveAvanzaIzqDer(&dashtime, &ship, &vx, &radio, &delta); //la nave se mueve
 				}else if(keys[SDL_SCANCODE_RIGHT]){ //movimiento hacia la derecha
 					int vx = 1; //la velocidad de la nave se hace positiva
-					NaveAvanzaIzqDer(&ship, &vx, &radio, &delta); //la nave se mueve
+					NaveAvanzaIzqDer(&dashtime, &ship, &vx, &radio, &delta); //la nave se mueve
 				}else if(keys[SDL_SCANCODE_SPACE]){ //si se presiona el espacio
 					NaveDispara(&ship, p_bullet, balas, renderer, b_Texture); //la nave dispara
 					//Play the music
@@ -172,22 +175,25 @@ renderer renderiza la imagen en la ventana
 //para moverse de izquierda a derecha, dependera de la velocidad en el eje x
 //si la velocidad en el eje x es negativa se mueve hacia la izquierda
 //en caso contrario se mueve hacia la derecha
-void NaveAvanzaIzqDer(SDL_Rect *ship, int *vx, double *radio, double *delta){
+void NaveAvanzaIzqDer(Uint32 *dash, SDL_Rect *ship, int *vx, double *radio, double *delta){
+
+	Uint32 tiempo_actual = SDL_GetTicks();
 	const unsigned char *keys;
 	keys=SDL_GetKeyboardState(NULL);
 
+	printf("%u ", tiempo_actual - *dash);
+
 	*delta += *vx*M_PI/45;
 
-	if(keys[SDL_SCANCODE_SPACE]){ //si se presiona el espacio
+	if(keys[SDL_SCANCODE_SPACE] && (tiempo_actual - *dash) > 2000){ //si se presiona el espacio y han pasado x segundos
 		*delta += *vx*M_PI/10;
+		*dash = tiempo_actual;
 	}
 	ship->x = (int)(*radio*sin(*delta) + (XSIZE - ship->w)/2);
 	ship->y = (int)(*radio*cos(*delta) + (YSIZE - ship->h)/2);
 }
 
-//en resumen, en esta parte se crea un arreglo de misiles con memoria dinamica
-//el primer if verifica si la nave tiene misiles ir a (** mas arriba), la configure para que parta sin misiles
-//luego, en el else, si no tiene misiles, los crea y los guarda en la nave
+
 void NaveDispara(SDL_Rect *ship, SDL_Rect *p_bullet, int balas[1000][3], SDL_Renderer *renderer, SDL_Texture *texture){
 
 	for (int i = 0; i < 1000; i++)
