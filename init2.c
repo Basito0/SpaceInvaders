@@ -35,7 +35,7 @@ void NaveAvanzaIzqDer(Uint32 *dash, SDL_Rect *ship, int *vx, double *radio, doub
 void NaveDispara(Uint32 *time, SDL_Rect *ship, SDL_Rect p_bullet[], int balas[10][3],SDL_Renderer *renderer, SDL_Texture *texture);
 
 //Spawnea aliens
-void AlienSpawn(SDL_Rect aliens[], int alieninfo[100][3], Uint32 *spawntime);
+void AlienSpawn(SDL_Rect *ship, SDL_Rect *aliens, double alieninfo[100][6], Uint32 *spawntime);
 
 int main(int argc, char* argv[]){
 	//si SDL no se inicia lanza una ventana de error
@@ -112,7 +112,10 @@ int main(int argc, char* argv[]){
 	//[x][0] indica inicialización
 	//[x][1] indica el tipo de movimiento (1= recto, 2= espiral)
 	//[x][2] variable ángulo
-	int alieninfo[100][3]; for(int i=0; i<100; i++){alieninfo[i][0] = 0;}
+	//[x][3] variable radio
+	//[x][4] Velocidad inicial x
+	//[x][5] Velocidad inicial y
+	double alieninfo[100][6]; for(int i=0; i<100; i++){alieninfo[i][0] = 0;}
 	SDL_Rect aliens[100];
 
 	//comienza un contador
@@ -151,9 +154,6 @@ int main(int argc, char* argv[]){
 				}
 
 				//COMANDOS DE DESARROLLO
-				else if(keys[SDL_SCANCODE_DOWN]){ //Spawnea un alien
-					AlienSpawn(aliens, alieninfo, &spawnTime);
-				}
 				else if(keys[SDL_SCANCODE_UP]){ //Empieza musica
 					//Play the music
         			Mix_PlayMusic(tema, -1 );
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]){
 			}		
 		}
 		//Aparece un alien cada x milisegundos
-		AlienSpawn(aliens, alieninfo, &spawnTime);
+		AlienSpawn(&ship, aliens, alieninfo, &spawnTime);
 
 		//Pide info de texturas
 		SDL_QueryTexture(ship_texture, NULL, NULL, &ship.w, &ship.h);
@@ -186,12 +186,16 @@ int main(int argc, char* argv[]){
 		{
 			if (alieninfo[i][0] == 1)
 			{
-				if(alieninfo[i][1] = 1){
-					aliens[i].x += (ship.x - XSIZE/2)/10;
-					aliens[i].y += (ship.x - YSIZE/2)/10;
+				if(alieninfo[i][1] == 1){
+					aliens[i].x += alieninfo[i][4];
+					aliens[i].y += alieninfo[i][5];
 				}
-				aliens[i].x += 1;
-				aliens[i].y += 1;
+				if(alieninfo[i][1] == 2){
+					alieninfo[i][3] += 1;
+					alieninfo[i][2] += 1*M_PI/60;
+					aliens[i].x = (int)(alieninfo[i][3]*sin(alieninfo[i][2]) + (XSIZE - aliens->w)/2);
+					aliens[i].y = (int)(alieninfo[i][3]*cos(alieninfo[i][2]) + (YSIZE - aliens->h)/2);
+				}
 				SDL_QueryTexture(al_Texture, NULL, NULL, &aliens[i].w, &aliens[i].h);
 				SDL_RenderCopy(renderer, al_Texture, NULL, &aliens[i]);
 			}
@@ -261,7 +265,7 @@ void NaveDispara(Uint32 *time, SDL_Rect *ship, SDL_Rect *p_bullet, int balas[10]
 	}
 }
 
-void AlienSpawn(SDL_Rect *aliens, int alieninfo[100][3], Uint32 *spawntime){
+void AlienSpawn(SDL_Rect *ship, SDL_Rect *aliens, double alieninfo[100][6], Uint32 *spawntime){
 
 	Uint32 tiempo_actual = SDL_GetTicks();
 	int tipo = rand() % 101;
@@ -270,17 +274,22 @@ void AlienSpawn(SDL_Rect *aliens, int alieninfo[100][3], Uint32 *spawntime){
 	{
 		//1 significa inicializado. 0 es una bala disponible
 		if(alieninfo[i][0] == 0 && tiempo_actual - *spawntime > 100){
-			if(tipo <= 50){alieninfo[i][1] = 1;}
-			if(tipo > 50){alieninfo[i][1] = 2;}
+			if(tipo <= 50){
+				alieninfo[i][1] = 1;
+				alieninfo[i][4] = (ship->x - (XSIZE + ship->w)/2)/20;
+				alieninfo[i][5] = (ship->y - (YSIZE + ship->h)/2)/20;
+			}
+			if(tipo > 50){
+				alieninfo[i][1] = 2;
+				alieninfo[i][2] = 0;
+				alieninfo[i][3] = 1;
+			}
 			alieninfo[i][0] = 1;
 			aliens[i].x = XSIZE/2;
 			aliens[i].y = YSIZE/2 - 1;
 
-			//Calcula el movimiento del alien
-			alieninfo[i][1] = 1;
-			alieninfo[i][2] = 1;
-
 			*spawntime = tiempo_actual;
+			break;
 		}
 	}
 }
