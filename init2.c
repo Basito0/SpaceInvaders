@@ -176,8 +176,8 @@ void NaveAvanzaIzqDer(SDL_Rect *ship, int *vx, double *radio, double *delta){
 	const unsigned char *keys;
 	keys=SDL_GetKeyboardState(NULL);
 
-	*delta += *vx*M_PI/30;
-	
+	*delta += *vx*M_PI/45;
+
 	if(keys[SDL_SCANCODE_SPACE]){ //si se presiona el espacio
 		*delta += *vx*M_PI/10;
 	}
