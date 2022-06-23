@@ -1,3 +1,11 @@
+
+
+
+Metan aca el .exe pal windows
+
+
+
+BLA BLA BLA DEL sdl
 This library is distributed under the terms of the zlib license:
 
   This software is provided 'as-is', without any express or implied
