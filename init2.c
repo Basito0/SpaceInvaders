@@ -1,5 +1,6 @@
 //cambios de la megumin 
 #include <stdio.h>
+#include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
@@ -107,11 +108,15 @@ int main(int argc, char* argv[]){
 	int balas[10][3];
 	SDL_Rect p_bullet[10];
 
-	//Balas del jugador, velocidad en x e y
-	int alieninfo[100][3];
+	//Aliens y su info
+	//[x][0] indica inicialización
+	//[x][1] indica el tipo de movimiento (1= recto, 2= espiral)
+	//[x][2] variable ángulo
+	int alieninfo[100][3]; for(int i=0; i<100; i++){alieninfo[i][0] = 0;}
 	SDL_Rect aliens[100];
 
 	//comienza un contador
+	srand(SDL_GetTicks());
 	Uint32 dashTime = SDL_GetTicks();
 	Uint32 bulletTime = SDL_GetTicks();
 	Uint32 spawnTime = SDL_GetTicks();
@@ -144,15 +149,19 @@ int main(int argc, char* argv[]){
 				}else if(keys[SDL_SCANCODE_SPACE]){ //si se presiona el espacio
 					NaveDispara(&bulletTime, &ship, p_bullet, balas, renderer, b_Texture); //la nave dispara
 				}
-				else if(keys[SDL_SCANCODE_DOWN]){ //movimiento hacia la derecha
+
+				//COMANDOS DE DESARROLLO
+				else if(keys[SDL_SCANCODE_DOWN]){ //Spawnea un alien
 					AlienSpawn(aliens, alieninfo, &spawnTime);
 				}
-				else if(keys[SDL_SCANCODE_UP]){ //movimiento hacia la derecha
+				else if(keys[SDL_SCANCODE_UP]){ //Empieza musica
 					//Play the music
         			Mix_PlayMusic(tema, -1 );
 				}
 			}		
 		}
+		//Aparece un alien cada x milisegundos
+		AlienSpawn(aliens, alieninfo, &spawnTime);
 
 		//Pide info de texturas
 		SDL_QueryTexture(ship_texture, NULL, NULL, &ship.w, &ship.h);
@@ -177,6 +186,10 @@ int main(int argc, char* argv[]){
 		{
 			if (alieninfo[i][0] == 1)
 			{
+				if(alieninfo[i][1] = 1){
+					aliens[i].x += (ship.x - XSIZE/2)/10;
+					aliens[i].y += (ship.x - YSIZE/2)/10;
+				}
 				aliens[i].x += 1;
 				aliens[i].y += 1;
 				SDL_QueryTexture(al_Texture, NULL, NULL, &aliens[i].w, &aliens[i].h);
@@ -251,13 +264,17 @@ void NaveDispara(Uint32 *time, SDL_Rect *ship, SDL_Rect *p_bullet, int balas[10]
 void AlienSpawn(SDL_Rect *aliens, int alieninfo[100][3], Uint32 *spawntime){
 
 	Uint32 tiempo_actual = SDL_GetTicks();
+	int tipo = rand() % 101;
+
 	for (int i = 0; i < 100; i++)
 	{
 		//1 significa inicializado. 0 es una bala disponible
 		if(alieninfo[i][0] == 0 && tiempo_actual - *spawntime > 100){
+			if(tipo <= 50){alieninfo[i][1] = 1;}
+			if(tipo > 50){alieninfo[i][1] = 2;}
 			alieninfo[i][0] = 1;
 			aliens[i].x = XSIZE/2;
-			aliens[i].y = YSIZE/2;
+			aliens[i].y = YSIZE/2 - 1;
 
 			//Calcula el movimiento del alien
 			alieninfo[i][1] = 1;
