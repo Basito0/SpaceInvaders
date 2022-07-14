@@ -1,10 +1,12 @@
 //cambios de la megumin 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
 #include <math.h>
 //crea variables globales
 //tamaño de ventana
@@ -28,6 +30,25 @@ SDL_Texture* LoadTexture(const char* filepath, SDL_Renderer* renderTarget){
 	return texture;
 }
 
+SDL_Texture* LoadFromRenderedText(const char* textureText, TTF_Font *gFont, SDL_Renderer* renderer, SDL_Color textColor){
+	//Lo mismo que la función anterior pero con texto
+	SDL_Surface* textSurface = TTF_RenderText_Solid(gFont, textureText, textColor);
+	if( textSurface == NULL )
+    {
+        printf( "Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError() );
+    }
+	SDL_Texture* mTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_FreeSurface(textSurface);
+
+    return mTexture;
+}
+
+//Pa pasar de entero a caracter
+char *my_itoa(int num, char *str)
+{
+        sprintf(str, "%d", num);
+        return str;
+}
 //Función que mueve la nave de forma circunferencial
 void NaveAvanzaIzqDer(Uint32 *dash, SDL_Rect *ship, int *vx, double *radio, double *delta);
 
@@ -38,6 +59,8 @@ void NaveDispara(Uint32 *time, SDL_Rect *ship, SDL_Rect p_bullet[], int balas[10
 void AlienSpawn(SDL_Rect *ship, SDL_Rect *aliens, double alieninfo[100][6], Uint32 *spawntime);
 
 int main(int argc, char* argv[]){
+
+	TTF_Init();
 	//si SDL no se inicia lanza una ventana de error
 	if(SDL_Init(SDL_INIT_EVERYTHING)<0){
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error",SDL_GetError(),NULL);
@@ -56,6 +79,7 @@ int main(int argc, char* argv[]){
 	SDL_Window *window;//crea un puntero de tipo ventana con nombre window
 	SDL_Renderer *renderer;//crea un puntero de tipo Render con nombre renderer
 	SDL_Event event;//crea una variable de tipo evento
+	TTF_Font *gFont; //La fuente a ser utilizada
 	
 	/*
 	Creamos un puntero que crea la ventana del juego, el nombre de la ventana es Space Invader, XSIZE es el ancho, definido como 600. YSIXE es el alto, definido como 600
@@ -75,11 +99,17 @@ int main(int argc, char* argv[]){
 	gameOver=0;//le asigna 0 a la variable gameOver (0 es Falso)
 	
 	keys=SDL_GetKeyboardState(NULL);//se le asigna a keys la funcion GetKeyboardState, que detecta que tecla fue pulsada, la tecla presionada se guarda en key
-	
+
 	//ACA ASIGNAMOS TEXTURAS Y COLISIONES
 	SDL_Texture* ship_texture = LoadTexture("Resources/Sprites/Nave_new.png", renderer);
 	SDL_Texture* b_Texture = LoadTexture("Resources/Sprites/Bullet_01.png", renderer);
 	SDL_Texture* al_Texture = LoadTexture("Resources/Sprites/alien.png", renderer);
+
+	gFont = TTF_OpenFont("Minecraft.ttf", 28);
+	SDL_Rect texto;
+	SDL_Color color = {255, 255, 255};
+	SDL_Texture* txt_Texture = LoadFromRenderedText("Hola", gFont, renderer, color);
+
 	SDL_Rect ship;
 
 	//Punteros para música
@@ -110,7 +140,7 @@ int main(int argc, char* argv[]){
 
 	//Aliens y su info
 	//[x][0] indica inicialización
-	//[x][1] indica el tipo de movimiento (1= recto, 2= espiral)
+	//[x][1] indica el tipo de movimiento (1 = recto, 2 = espiral)
 	//[x][2] variable ángulo
 	//[x][3] variable radio
 	//[x][4] Velocidad inicial x
@@ -124,9 +154,14 @@ int main(int argc, char* argv[]){
 	Uint32 bulletTime = SDL_GetTicks();
 	Uint32 spawnTime = SDL_GetTicks();
 
+	int puntaje = 0;
+	char puntos[10000];
 
 	while(!gameOver){//se niega gameOver para que se considere verdadera, mientras sea "verdadera" tb se puede usar la condicion gameOver==0
 		
+		//Texturas a actualizar
+		SDL_Texture* txt_Texture = LoadFromRenderedText(my_itoa(puntaje, puntos), gFont, renderer, color);
+
 		//RenderClear limpia la ventana con un color X
 		SDL_RenderClear(renderer);
 		if(SDL_PollEvent(&event)){ //si se detecta la pulsacion de una tecla
@@ -163,8 +198,13 @@ int main(int argc, char* argv[]){
 		//Aparece un alien cada x milisegundos
 		AlienSpawn(&ship, aliens, alieninfo, &spawnTime);
 
+		//Posiciona el sprite de la nave
+		texto.x = 0;
+		texto.y = 0;
+
 		//Pide info de texturas
 		SDL_QueryTexture(ship_texture, NULL, NULL, &ship.w, &ship.h);
+		SDL_QueryTexture(txt_Texture, NULL, NULL, &texto.w, &texto.h);
 
 		//Hace cosas con las balas del jugador
 		for (int i = 0; i < 10; i++)
@@ -198,6 +238,7 @@ int main(int argc, char* argv[]){
 					if(SDL_HasIntersection(&p_bullet[u], &aliens[i]) == SDL_TRUE){
 						alieninfo[i][0] = 0;
 						balas[u][0] = 0;
+						puntaje += 100;
 					}
 				}
 				if(SDL_HasIntersection(&ship, &aliens[i]) == SDL_TRUE){
@@ -223,6 +264,7 @@ int main(int argc, char* argv[]){
 		}
 
 		SDL_RenderCopy(renderer, ship_texture, NULL, &ship);
+		SDL_RenderCopy(renderer, txt_Texture, NULL, &texto);
 		//presenta la imagen, creo
 		SDL_RenderPresent(renderer);
 		SDL_Delay(MS);	
@@ -295,12 +337,12 @@ void AlienSpawn(SDL_Rect *ship, SDL_Rect *aliens, double alieninfo[100][6], Uint
 			alieninfo[i][0] = 1;
 			aliens[i].x = XSIZE/2;
 			aliens[i].y = YSIZE/2 - 1;
-			if(tipo <= 50){
+			if(tipo <= 10){ //Probabilidad de [i][1] = 1
 				alieninfo[i][1] = 1;
 				alieninfo[i][4] = (ship->x - (XSIZE + ship->w)/2)/20;
 				alieninfo[i][5] = (ship->y - (YSIZE + ship->h)/2)/20;
 			}
-			if(tipo > 50){
+			if(tipo > 90){ //Probabilidad de [i][1] = 2
 				alieninfo[i][1] = 2;
 				alieninfo[i][2] = 0;
 				alieninfo[i][3] = 1;
