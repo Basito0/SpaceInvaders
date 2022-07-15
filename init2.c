@@ -94,6 +94,7 @@ int main(int argc, char* argv[]){
         printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
     }
 
+
 	renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	
 	gameOver=0;//le asigna 0 a la variable gameOver (0 es Falso)
@@ -102,11 +103,13 @@ int main(int argc, char* argv[]){
 
 	//ACA ASIGNAMOS TEXTURAS Y COLISIONES
 	SDL_Texture* ship_texture = LoadTexture("Resources/Sprites/Nave_new.png", renderer);
-	SDL_Texture* b_Texture = LoadTexture("Resources/Sprites/Bullet_01.png", renderer);
-	SDL_Texture* al_Texture = LoadTexture("Resources/Sprites/alien.png", renderer);
+	SDL_Texture* b_Texture = LoadTexture("Resources/Sprites/Bullet(16)/Bullet_01.png", renderer);
+	SDL_Texture* al_Texture = LoadTexture("Resources/Sprites/Alien1_1.png", renderer);
 
-	gFont = TTF_OpenFont("Minecraft.ttf", 28);
+	gFont = TTF_OpenFont("./Resources/Fonts/Minecraft.ttf", 28);
 	SDL_Rect texto;
+	SDL_Rect texto2;
+	SDL_Rect GamerOver;
 	SDL_Color color = {255, 255, 255};
 	SDL_Texture* txt_Texture = LoadFromRenderedText("Hola", gFont, renderer, color);
 
@@ -121,7 +124,7 @@ int main(int argc, char* argv[]){
 	Mix_Chunk *gMedium = NULL;
 	Mix_Chunk *gLow = NULL;
 
-	tema = Mix_LoadMUS("Resources/Audio/Music/Long_live_the_new_fresh.wav");
+	tema = Mix_LoadMUS("Resources/Audio/Music/musica.mp3");
 
 	//Variables para el movimiento de la nave
 	float ox, oy;
@@ -153,15 +156,17 @@ int main(int argc, char* argv[]){
 	Uint32 dashTime = SDL_GetTicks();
 	Uint32 bulletTime = SDL_GetTicks();
 	Uint32 spawnTime = SDL_GetTicks();
-
+	int vida = 3;
 	int puntaje = 0;
 	char puntos[10000];
+	char manzana[50];
 
 	while(!gameOver){//se niega gameOver para que se considere verdadera, mientras sea "verdadera" tb se puede usar la condicion gameOver==0
 		
 		//Texturas a actualizar
 		SDL_Texture* txt_Texture = LoadFromRenderedText(my_itoa(puntaje, puntos), gFont, renderer, color);
-
+		SDL_Texture* vidas = LoadFromRenderedText(my_itoa(vida,manzana),gFont,renderer,color);
+		SDL_Texture* go = LoadFromRenderedText(NULL, gFont,renderer,color);
 		//RenderClear limpia la ventana con un color X
 		SDL_RenderClear(renderer);
 		if(SDL_PollEvent(&event)){ //si se detecta la pulsacion de una tecla
@@ -201,11 +206,16 @@ int main(int argc, char* argv[]){
 		//Posiciona el sprite de la nave
 		texto.x = 0;
 		texto.y = 0;
+		texto2.x = 100;
+		texto2.y = 0;
+		GamerOver.x = XSIZE/2;
+		GamerOver.y = YSIZE/2;
 
 		//Pide info de texturas
 		SDL_QueryTexture(ship_texture, NULL, NULL, &ship.w, &ship.h);
 		SDL_QueryTexture(txt_Texture, NULL, NULL, &texto.w, &texto.h);
-
+		SDL_QueryTexture(go, NULL, NULL, &GamerOver.w, &GamerOver.h);
+		SDL_QueryTexture(vidas,NULL,NULL,&texto2.w, &texto2.h );
 		//Hace cosas con las balas del jugador
 		for (int i = 0; i < 10; i++)
 		{
@@ -243,6 +253,10 @@ int main(int argc, char* argv[]){
 				}
 				if(SDL_HasIntersection(&ship, &aliens[i]) == SDL_TRUE){
 					alieninfo[i][0] = 0;
+					vida --;
+				}
+				if(vida == 0){
+					gameOver = 1;
 				}
 
 				if(alieninfo[i][1] == 1){
@@ -265,6 +279,8 @@ int main(int argc, char* argv[]){
 
 		SDL_RenderCopy(renderer, ship_texture, NULL, &ship);
 		SDL_RenderCopy(renderer, txt_Texture, NULL, &texto);
+		SDL_RenderCopy(renderer, vidas, NULL,&texto2);
+		//SDL_RenderCopy(renderer,go,NULL,&GamerOver);   //no se imprime ;-;
 		//presenta la imagen, creo
 		SDL_RenderPresent(renderer);
 		SDL_Delay(MS);	
@@ -290,8 +306,8 @@ void NaveAvanzaIzqDer(Uint32 *dash, SDL_Rect *ship, int *vx, double *radio, doub
 
 	*delta += *vx*M_PI/45;
 
-	if(keys[SDL_SCANCODE_SPACE] && (tiempo_actual - *dash) > 500){ //si se presiona el espacio y han pasado x segundos
-		*delta += *vx*M_PI/10;
+	if((keys[SDL_SCANCODE_Q]) && (tiempo_actual - *dash) > 500){ //si se presiona el espacio y han pasado x segundos
+		*delta += *vx*M_PI/5;
 		*dash = tiempo_actual;
 	}
 	ship->x = (int)(*radio*sin(*delta) + (XSIZE - ship->w)/2);
@@ -305,7 +321,7 @@ void NaveDispara(Uint32 *time, SDL_Rect *ship, SDL_Rect *p_bullet, int balas[10]
 	for (int i = 0; i < 10; i++)
 	{
 		//1 significa inicializado. 0 es una bala disponible
-		if(balas[i][0] == 0 && (tiempo_actual - *time) > 500){
+		if(balas[i][0] == 0 && (tiempo_actual - *time) > 250){
 			balas[i][0] = 1;
 			p_bullet[i].x = ship->x;
 			p_bullet[i].y = ship->y;
@@ -333,7 +349,7 @@ void AlienSpawn(SDL_Rect *ship, SDL_Rect *aliens, double alieninfo[100][6], Uint
 	for (int i = 0; i < 100; i++)
 	{
 		//1 significa inicializado. 0 es una bala disponible
-		if(alieninfo[i][0] == 0 && tiempo_actual - *spawntime > 100){
+		if(alieninfo[i][0] == 0 && tiempo_actual - *spawntime > 150){
 			alieninfo[i][0] = 1;
 			aliens[i].x = XSIZE/2;
 			aliens[i].y = YSIZE/2 - 1;
