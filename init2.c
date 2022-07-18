@@ -482,7 +482,12 @@ int main(int argc, char* argv[]){
 					vida --;
 				}
 				if(vida == 0){				
-					gameOver = 1;						
+					gameOver = 1;
+
+					SDL_DestroyRenderer(renderer);
+					SDL_DestroyWindow(window);
+					Mix_Quit();
+					SDL_Quit();						
 
 					gameOver = menuMuerte(gameOver);
 
