@@ -186,22 +186,11 @@ int mainMenu(int menu){
     			        
     			    }
     			}
-        	}
-
-
-
-
-
-            
-        	 else if(buttonid == 3){ //Salir
+        	}            
+        	else if(buttonid == 3){ //Salir
         		menu = -1;
         		SDL_Quit;
-        		
-
-
-        	}
-    
-    
+        	}   
         	else {
             	SDL_Log("selection was %s", buttons[buttonid].text);
         	}	
@@ -232,7 +221,7 @@ int menuMuerte(int gameOver){
         	SDL_MESSAGEBOX_INFORMATION,
         	NULL,
         	"Has Pérdido",
-        	"Selecciona un boton",
+        	"Has perdido, selecciona un boton",
         	SDL_arraysize(botones),
         	botones,
         	&colorBotones
@@ -242,7 +231,22 @@ int menuMuerte(int gameOver){
         	printf("error\n");
         	return 1;
         }
-
+        switch(idBoton){
+        	case -1:
+        		SDL_Log("No seleccion");
+        		break;
+        	case 0: //volver a jugar
+        		gameOver = 0;
+        		continue;
+        	case 1: //volver al menú principal
+        		gameOver = NULL;
+        		break;
+        	case 2: //salir
+        		gameOver = -1;
+        		SDL_Quit();
+        		break;
+        }
+        /*
         if(idBoton == -1) SDL_Log("No seleccion");
 
         else if(idBoton == 0){ //volver a jugar        				
@@ -259,13 +263,19 @@ int menuMuerte(int gameOver){
         }else if(idBoton == 2){ //salir
         	gameOver = -1;
         	break;
-        }
+        }*/
     }
     return gameOver;
 }
 
-int main(int argc, char* argv[]){
+void reset(int vidas, int puntaje){
+	vidas = 3;
+	puntaje = 0;
+}
 
+
+int main(int argc, char* argv[]){
+	INICIO:
 	int menu;
 	int gameOver = mainMenu(gameOver); 
 
@@ -279,10 +289,11 @@ int main(int argc, char* argv[]){
 	}
 	//en caso contrario crea una ventana con nombre "Space Invaders"
 	//y lanza el mensaje GAME READY
+	/*
 	else{		
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,"Space Invaders","GAME READY",NULL);
 	}
-	
+	*/
 	int typeEvent;//crea una variable entera typeEvent para almacenar la entrada de tecla
 	//crea una variable entera para controlar si sigue dentro del ciclo del juego o no 
 	
@@ -372,6 +383,7 @@ int main(int argc, char* argv[]){
 	int puntaje = 0;
 	char puntos[10000];
 	char manzana[50];
+	Mix_PlayMusic(tema,-1);
 
 	while(!gameOver){//se niega gameOver para que se considere verdadera, mientras sea "verdadera" tb se puede usar la condicion gameOver==0
 		
@@ -408,7 +420,8 @@ int main(int argc, char* argv[]){
 				//COMANDOS DE DESARROLLO
 				else if(keys[SDL_SCANCODE_UP]){ //Empieza musica
 					//Play the music
-        			Mix_PlayMusic(tema, -1 );
+        			//Mix_PlayMusic(tema, -1 );
+        			Mix_HaltMusic();
 				}
 			}		
 		}
@@ -468,18 +481,16 @@ int main(int argc, char* argv[]){
 					vida --;
 				}
 				if(vida == 0){				
-					gameOver = 1;
-					SDL_DestroyRenderer(renderer);
-					SDL_DestroyWindow(window);
-					Mix_Quit();
-					SDL_Quit();
-					int menuMu;
+					gameOver = 1;						
+
+					gameOver = menuMuerte(gameOver);
+
+					if(gameOver == NULL){
+						reset(vida,puntaje);
+						goto INICIO;
+						break;
+					}
 					
-					//menuMu = menuMuerte(menuMu);
-
-					menuMuerte(gameOver);
-
-					break;
 				}
 
 				if(alieninfo[i][1] == 1){
