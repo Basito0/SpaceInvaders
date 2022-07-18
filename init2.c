@@ -104,7 +104,7 @@ int mainMenu(int menu){
     			menu = 2;
     			while(menu == 2){
     				const SDL_MessageBoxButtonData botones[] = {
-        	    		{SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,0,"Instrucciones"},
+        	    		//{SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,0,"Instrucciones"},
         	    		{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,1,"Volver al menú"},
         
                		};
@@ -123,7 +123,7 @@ int mainMenu(int menu){
                			SDL_MESSAGEBOX_INFORMATION,
                			NULL,
                			"Instrucciones",
-               			"Selecciona un boton",
+               			"Mueveté con las flechas izquierda y derecha, silencia la música con la flecha hacia arriba y dispara con espacio",
                			SDL_arraysize(botones),
                			botones,
                			&colorBotones
@@ -148,7 +148,7 @@ int mainMenu(int menu){
     			menu = 10;
     			while(menu == 10){
     				const SDL_MessageBoxButtonData botones1[] = {
-    			       	{SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,0,"Hola"},
+    			       	//{SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,0,"Hola"},
     			       	{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,1,"Volver al menú"},
     			        
     			    };
@@ -167,7 +167,7 @@ int mainMenu(int menu){
     			        SDL_MESSAGEBOX_INFORMATION,
     			        NULL,
     			        "Instrucciones",
-    			        "Selecciona un boton",
+    			        "Aqui se visualizaran los Records en un futuro",
     			        SDL_arraysize(botones1),
     			        botones1,
     			        &colorBotones1
@@ -275,8 +275,9 @@ void reset(int vidas, int puntaje){
 
 
 int main(int argc, char* argv[]){
-	INICIO:
+	
 	int menu;
+	INICIO:
 	int gameOver = mainMenu(gameOver); 
 
 
@@ -384,7 +385,7 @@ int main(int argc, char* argv[]){
 	char puntos[10000];
 	char manzana[50];
 	Mix_PlayMusic(tema,-1);
-
+	
 	while(!gameOver){//se niega gameOver para que se considere verdadera, mientras sea "verdadera" tb se puede usar la condicion gameOver==0
 		
 		//Texturas a actualizar
@@ -489,8 +490,7 @@ int main(int argc, char* argv[]){
 						reset(vida,puntaje);
 						goto INICIO;
 						break;
-					}
-					
+					}					
 				}
 
 				if(alieninfo[i][1] == 1){
