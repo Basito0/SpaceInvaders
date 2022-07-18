@@ -1,4 +1,3 @@
-//cambios de la megumin 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -58,7 +57,220 @@ void NaveDispara(Uint32 *time, SDL_Rect *ship, SDL_Rect p_bullet[], int balas[10
 //Spawnea aliens
 void AlienSpawn(SDL_Rect *ship, SDL_Rect *aliens, double alieninfo[100][6], Uint32 *spawntime);
 
+int mainMenu(int menu){
+		while(menu == NULL){
+	    	const SDL_MessageBoxButtonData buttons[] = {
+           	 	{        0, 0, "Jugar" },
+            	{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Instrucciones" },
+            	{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 2,"Récords"  },
+            	{3,3,"Salir"}
+        	};
+        	const SDL_MessageBoxColorScheme colorScheme = {
+            	{ 
+                
+                	{ 0,   0,   0 },
+                
+                	{   255, 255,   255 },
+               
+                	{ 255, 255,   255 },
+                
+                	{   0,   0, 0 },
+                
+                	{ 255,   0, 255 }
+            	}
+        	};
+        	const SDL_MessageBoxData messageboxdata = {
+            	SDL_MESSAGEBOX_INFORMATION, 
+            	NULL, 
+            	"Space Invaders", 
+            	"Selecciona una opción", 
+            	SDL_arraysize(buttons), 
+            	buttons, 
+           	 	&colorScheme 
+        	};
+    
+    
+        	int buttonid;
+        	if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+            	SDL_Log("error displaying message box");
+            	return 1;
+        	}
+        	if (buttonid == -1) {
+            	SDL_Log("no selection");            
+        	} else if(buttonid == 0){ //pa jugar       	
+            	menu = 0;
+            	break;
+        	} else if(buttonid == 1){ //Instrucciones
+    			menu = 2;
+    			while(menu == 2){
+    				const SDL_MessageBoxButtonData botones[] = {
+        	    		{SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,0,"Instrucciones"},
+        	    		{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,1,"Volver al menú"},
+        
+               		};
+               		const SDL_MessageBoxColorScheme colorBotones = {
+               			{
+               				{0,0,0}, //Fondo de MesaggeBox
+               		    	{255,255,255}, //Color del texto del mensaje
+               		    	{255,255,0},
+               		    	{0,0,0},
+               		    	{255,0,255}
+               			}
+        	
+               		};
+        	
+               		const SDL_MessageBoxData datosBotones = {
+               			SDL_MESSAGEBOX_INFORMATION,
+               			NULL,
+               			"Instrucciones",
+               			"Selecciona un boton",
+               			SDL_arraysize(botones),
+               			botones,
+               			&colorBotones
+              		};
+               		int idBoton;
+               		if(SDL_ShowMessageBox(&datosBotones , &idBoton) < 0){
+               			printf("error\n");
+               			return 1;
+               		}	
+        	
+               		if(idBoton == -1) SDL_Log("No seleccion");
+        	
+               		else if(idBoton == 1){
+        	        		
+           			menu = NULL;
+        
+              		}
+        		}
+        	
+
+        	} else if(buttonid == 2){ //Récords
+    			menu = 10;
+    			while(menu == 10){
+    				const SDL_MessageBoxButtonData botones1[] = {
+    			       	{SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,0,"Hola"},
+    			       	{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,1,"Volver al menú"},
+    			        
+    			    };
+    			    const SDL_MessageBoxColorScheme colorBotones1 = {
+    			    	{
+    			    		{0,0,0}, //Fondo de MesaggeBox
+    			    	   	{255,255,255}, //Color del texto del mensaje
+    			            {255,255,0},
+    			            {0,0,0},
+    			            {255,0,255}
+    			        }
+    			        	
+    			    };
+    			        	
+    			    const SDL_MessageBoxData datosBotones1 = {
+    			        SDL_MESSAGEBOX_INFORMATION,
+    			        NULL,
+    			        "Instrucciones",
+    			        "Selecciona un boton",
+    			        SDL_arraysize(botones1),
+    			        botones1,
+    			        &colorBotones1
+    			    };
+    			    int idBoton1;
+    			    if(SDL_ShowMessageBox(&datosBotones1 , &idBoton1) < 0){
+    			    	printf("error\n");
+    			        return 1;
+    			    }	
+    			        	
+    			    if(idBoton1 == -1) SDL_Log("No seleccion");
+    			        	
+    			    else if(idBoton1 == 1){
+    			        	        		
+    			    menu = NULL;
+    			        
+    			    }
+    			}
+        	}
+
+
+
+
+
+            
+        	 else if(buttonid == 3){ //Salir
+        		menu = -1;
+        		SDL_Quit;
+        		
+
+
+        	}
+    
+    
+        	else {
+            	SDL_Log("selection was %s", buttons[buttonid].text);
+        	}	
+    	}
+    	return menu;
+}
+
+int menuMuerte(int gameOver){
+	while(gameOver == 1){
+		const SDL_MessageBoxButtonData botones[] = {
+        	{SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,0,"Volver a Jugar"},
+        	{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,1,"Volver al menú principal"},
+        	{2,2,"Salir"},
+
+        };
+        const SDL_MessageBoxColorScheme colorBotones = {
+        	{
+        		{0,0,0}, //Fondo de MesaggeBox
+        		{255,255,255}, //Color del texto del mensaje
+        		{255,255,0},
+        		{0,0,0},
+        		{255,0,255}
+        	}
+
+        };
+
+        const SDL_MessageBoxData datosBotones = {
+        	SDL_MESSAGEBOX_INFORMATION,
+        	NULL,
+        	"Has Pérdido",
+        	"Selecciona un boton",
+        	SDL_arraysize(botones),
+        	botones,
+        	&colorBotones
+        };
+        int idBoton;
+        if(SDL_ShowMessageBox(&datosBotones , &idBoton) < 0){
+        	printf("error\n");
+        	return 1;
+        }
+
+        if(idBoton == -1) SDL_Log("No seleccion");
+
+        else if(idBoton == 0){ //volver a jugar        				
+        	gameOver = 0;
+        	break;
+
+
+        }else if(idBoton == 1){ //menu principal
+        				
+        	//SDL_DestroyRenderer(renderer);
+			//SDL_DestroyWindow(window);
+			gameOver = NULL;
+
+        }else if(idBoton == 2){ //salir
+        	gameOver = -1;
+        	break;
+        }
+    }
+    return gameOver;
+}
+
 int main(int argc, char* argv[]){
+
+	int menu;
+	int gameOver = mainMenu(gameOver); 
+
+
+
 
 	TTF_Init();
 	//si SDL no se inicia lanza una ventana de error
@@ -72,7 +284,7 @@ int main(int argc, char* argv[]){
 	}
 	
 	int typeEvent;//crea una variable entera typeEvent para almacenar la entrada de tecla
-	int gameOver;//crea una variable entera para controlar si sigue dentro del ciclo del juego o no 
+	//crea una variable entera para controlar si sigue dentro del ciclo del juego o no 
 	
 	const unsigned char *keys;//crea una constante char sin signo para identificar la tecla que se pulsa
 	
@@ -97,7 +309,7 @@ int main(int argc, char* argv[]){
 
 	renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	
-	gameOver=0;//le asigna 0 a la variable gameOver (0 es Falso)
+	
 	
 	keys=SDL_GetKeyboardState(NULL);//se le asigna a keys la funcion GetKeyboardState, que detecta que tecla fue pulsada, la tecla presionada se guarda en key
 
@@ -255,8 +467,19 @@ int main(int argc, char* argv[]){
 					alieninfo[i][0] = 0;
 					vida --;
 				}
-				if(vida == 0){
+				if(vida == 0){				
 					gameOver = 1;
+					SDL_DestroyRenderer(renderer);
+					SDL_DestroyWindow(window);
+					Mix_Quit();
+					SDL_Quit();
+					int menuMu;
+					
+					//menuMu = menuMuerte(menuMu);
+
+					menuMuerte(gameOver);
+
+					break;
 				}
 
 				if(alieninfo[i][1] == 1){
@@ -306,7 +529,7 @@ void NaveAvanzaIzqDer(Uint32 *dash, SDL_Rect *ship, int *vx, double *radio, doub
 
 	*delta += *vx*M_PI/45;
 
-	if((keys[SDL_SCANCODE_Q]) && (tiempo_actual - *dash) > 500){ //si se presiona el espacio y han pasado x segundos
+	if((keys[SDL_SCANCODE_SPACE]) && (tiempo_actual - *dash) > 500){ //si se presiona el espacio y han pasado x segundos
 		*delta += *vx*M_PI/5;
 		*dash = tiempo_actual;
 	}
@@ -369,4 +592,3 @@ void AlienSpawn(SDL_Rect *ship, SDL_Rect *aliens, double alieninfo[100][6], Uint
 		}
 	}
 }
-//EXPLOOOOOSION
