@@ -74,10 +74,12 @@ void extraerPuntajes(FILE *archivo , char *puntajes){
 	}
 }
 
+void mixMusica(Mix_Music *tema , Mix_Music *tema2 , Mix_Music *tema3 , Mix_Music *tema4 , Mix_Music *tema5 , Mix_Music *tema6 , Mix_Music *tema7 , Mix_Music *tema8 , Mix_Music *tema9 , Mix_Music *tema10);
+
 int mainMenu(int menu){
 
 	char fraseMainMenu[] = "Selecciona una opción \n";
-	char Instrucciones[] = "Mueveté con las flechas izquierda y derecha, silencia la música con la flecha hacia arriba y dispara con la barra espaciadora\n\n";
+	char Instrucciones[] = "                  Mueveté con las flechas izquierda y derecha,\n   Pausa la música con la flecha hacia arriba y reanudala con flecha hacia abajo,\n                        Dispara con la barra espaciadora\n                       Y cambia la cancion con la tecla M\n\n";
 	char Records[10000]; // Records[5]; pos1: puntaje1 , pos2: \n , pos3: puntaje2 , pos4: \n , pos5: puntaje 3
 	FILE *score;
 	extraerPuntajes(score , Records);
@@ -208,16 +210,6 @@ int mainMenu(int menu){
     	}
     	return menu;
 }
-
-int reset(int vidas, int puntaje,int nivel){
-	if(nivel >= 0 && vidas == 0 && puntaje >= 0){
-		nivel = 0;
-		vidas = 3;
-		puntaje = 0;
-		return nivel,vidas,puntaje;
-	}
-}
-
 int menuMuerte(int gameOver){
 	while(gameOver == INT_MAX){
 		const SDL_MessageBoxButtonData botones[] = {
@@ -286,19 +278,11 @@ int main(int argc, char* argv[]){
 
 	//if(gameOver == INT_MIN) gameOver = mainMenu(gameOver);
 
-
 	TTF_Init();
 	//si SDL no se inicia lanza una ventana de error
 	if(SDL_Init(SDL_INIT_EVERYTHING)<0){
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error",SDL_GetError(),NULL);
 	}
-	//en caso contrario crea una ventana con nombre "Space Invaders"
-	//y lanza el mensaje GAME READY
-	/*
-	else{
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,"Space Invaders","GAME READY",NULL);
-	}
-	*/
 	int typeEvent;//crea una variable entera typeEvent para almacenar la entrada de tecla
 	//crea una variable entera para controlar si sigue dentro del ciclo del juego o no
 
@@ -315,23 +299,20 @@ int main(int argc, char* argv[]){
 	renderer renderiza la imagen en la ventana
 	*/
 
-	window= SDL_CreateWindow("Space Invaders",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,XSIZE,YSIZE,SDL_WINDOW_SHOWN);
+	window = SDL_CreateWindow("Space Invaders",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,XSIZE,YSIZE,SDL_WINDOW_SHOWN);
 
 	//Initialize SDL_mixer
-    if( Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) < 0){
-        printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
-    }
-
+  if( Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) < 0){
+      printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+  }
 
 	renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-
-
 
 	keys=SDL_GetKeyboardState(NULL);//se le asigna a keys la funcion GetKeyboardState, que detecta que tecla fue pulsada, la tecla presionada se guarda en key
 
 	//ACA ASIGNAMOS TEXTURAS Y COLISIONES
 	SDL_Texture* ship_texture = LoadTexture("Resources/Sprites/Nave_new.png", renderer);
-	SDL_Texture* b_Texture = LoadTexture("Resources/Sprites/Bullet_01.png", renderer);
+	SDL_Texture* b_Texture = LoadTexture("Resources/Sprites/Bullet(16)/Bullet_01.png", renderer);
 	SDL_Texture* al_Texture = LoadTexture("Resources/Sprites/Alien1_1.png", renderer);
 
 	gFont = TTF_OpenFont("Resources/Fonts/Minecraft.ttf", 28);
@@ -346,6 +327,15 @@ int main(int argc, char* argv[]){
 	//Punteros para música
 	Mix_Music *tema = NULL;
 	Mix_Music *tema2 = NULL;
+	Mix_Music *tema3 = NULL;
+	Mix_Music *tema4 = NULL;
+	Mix_Music *tema5 = NULL;
+	Mix_Music *tema6 = NULL;
+	Mix_Music *tema7 = NULL;
+	Mix_Music *tema8 = NULL;
+	Mix_Music *tema9 = NULL;
+	Mix_Music *tema10 = NULL;
+
 	//Para efectos de sonido
 	Mix_Chunk *gScratch = NULL;
 	Mix_Chunk *gHigh = NULL;
@@ -354,11 +344,8 @@ int main(int argc, char* argv[]){
 	Mix_Chunk *sonido;
 	Mix_Chunk *explosion;
 
-	tema2 = Mix_LoadMUS("Resources/Audio/Music/space.mp3");
 	sonido = Mix_LoadWAV("Resources/Audio/disparoNave.wav");
-	tema = Mix_LoadMUS("Resources/Audio/Music/megalovania.mp3");
-
-	//Variables para el movimiento de la nave
+		//Variables para el movimiento de la nave
 	float ox, oy;
 	double radio = 200;
 	ox = (XSIZE - ship.w)/2 + radio;
@@ -393,10 +380,13 @@ int main(int argc, char* argv[]){
 	char puntos[10000];
 	char manzana[50];
 	int initSpawner = 0;
-	//Mix_PlayMusic(tema,-1);
-	Inicio:
-	do{//se niega gameOver para que se considere verdadera, mientras sea "verdadera" tb se puede usar la condicion gameOver==0
+	//
+	double nivel = 1;
+	mixMusica(tema , tema2 , tema3 , tema4 , tema5 , tema6 , tema7 , tema8 , tema9 , tema10);
 
+	do{//se niega gameOver para que se considere verdadera, mientras sea "verdadera" tb se puede usar la condicion gameOver==0
+		double rapidez = nivel * (0.75);
+		double rapidez2 = nivel * (0.5);
 		//LOOP PA DISEÑO BONITO
 		for(int i=0; i<20; i++){
 			if(alieninfo[i][0] != -1 && initSpawner < 20){
@@ -441,12 +431,14 @@ int main(int argc, char* argv[]){
 					NaveDispara(&bulletTime, &ship, p_bullet, balas, renderer, b_Texture); //la nave dispara
 
 				}
-
 				//COMANDOS DE DESARROLLO
 				else if(keys[SDL_SCANCODE_UP]){ //Empieza musica
-					//Play the music
-        			//Mix_PlayMusic(tema, -1 );
-        			Mix_PlayMusic(tema2,-1);
+					Mix_PauseMusic();
+				}
+				else if(keys[SDL_SCANCODE_DOWN]){
+					Mix_ResumeMusic();
+				}else if(keys[SDL_SCANCODE_M]){
+					mixMusica(tema , tema2 , tema3 , tema4 , tema5 , tema6 , tema7 , tema8 , tema9 , tema10);
 				}
 			}
 		}
@@ -520,6 +512,7 @@ int main(int argc, char* argv[]){
 						}
 						initSpawner = 0;
 						vida = 3;
+						nivel = 1;
 						puntaje = 0;
 						gameOver = 0;
 					}else if(gameOver == INT_MIN){ //volver al menu principal
@@ -531,14 +524,18 @@ int main(int argc, char* argv[]){
 					}
 
 				}
-
-				if(alieninfo[i][1] == 1){
-					aliens[i].x += alieninfo[i][4];
-					aliens[i].y += alieninfo[i][5];
+				//los alien se disparan contra la nave dependiendo de la variable disparoAlien, la velocidad del mov depende del nivel
+				int disparoAlien = rand() % 101;
+				if(disparoAlien > 65){
+					if(alieninfo[i][1] == 1){
+						aliens[i].x += alieninfo[i][4] * rapidez2 / 2;
+						aliens[i].y += alieninfo[i][5] * rapidez2 / 2;
+					}
 				}
+				//modifica el movimiento en espiral de los aliens segun el nivel
 				if(alieninfo[i][1] == 2){
-					alieninfo[i][3] += (0.05);
-					alieninfo[i][2] += 1*M_PI/180;
+					alieninfo[i][3] += (0.05) * rapidez; //radio
+					alieninfo[i][2] += 1*M_PI/180 * rapidez2; //angulo
 					aliens[i].x = (int)(alieninfo[i][3]*sin(alieninfo[i][2]) + (XSIZE - aliens->w)/2);
 					aliens[i].y = (int)(alieninfo[i][3]*cos(alieninfo[i][2]) + (YSIZE - aliens->h)/2);
 				}
@@ -555,8 +552,11 @@ int main(int argc, char* argv[]){
 			if (alieninfo[i][0] == -1) {
 				cuentaAliens += 1;
 			}
+			//alieninfo[i][2] = 1*M_PI/180*(0.25)*nivel;//modifica el angulo
+			//alieninfo[i][3] += (0,05)*nivel*(0.25); //modifica el radio
 			if (cuentaAliens == 100) {
 				//INICIAR NIVEL NUEVO
+				nivel += 1;
 				initSpawner = 0;
 				for(int u=0; u<100; u++){
 					alieninfo[u][0] = 0;
@@ -571,8 +571,6 @@ int main(int argc, char* argv[]){
 		//presenta la imagen, creo
 		SDL_RenderPresent(renderer);
 		SDL_Delay(MS);
-
-
 	}while(!gameOver);
 
 	printf("\ngameOver %d\n, vida %d \n, puntaje %d\n ", gameOver,vida,puntaje);
@@ -613,7 +611,7 @@ void NaveDispara(Uint32 *time, SDL_Rect *ship, SDL_Rect *p_bullet, int balas[10]
 	for (int i = 0; i < 10; i++)
 	{
 		//1 significa inicializado. 0 es una bala disponible
-		if(balas[i][0] == 0 && (tiempo_actual - *time) > 250){
+		if(balas[i][0] == 0 && (tiempo_actual - *time) > 150){
 			balas[i][0] = 1;
 			p_bullet[i].x = ship->x;
 			p_bullet[i].y = ship->y;
@@ -702,4 +700,44 @@ void Top(FILE *archivo, int puntaje,char *puntos){
 		fputs(guardado3,archivo);
 	}
 	fclose(archivo);
+}
+void mixMusica(Mix_Music *tema , Mix_Music *tema2 , Mix_Music *tema3 , Mix_Music *tema4 , Mix_Music *tema5 , Mix_Music *tema6 , Mix_Music *tema7 , Mix_Music *tema8 , Mix_Music *tema9 , Mix_Music *tema10){
+	int tipo = rand() % 101;
+
+	tema = Mix_LoadMUS("Resources/Audio/Music/megalovania.mp3");
+	tema2 = Mix_LoadMUS("Resources/Audio/Music/invaders.mp3");
+	tema3 = Mix_LoadMUS("Resources/Audio/Music/start.mp3");
+	tema4 = Mix_LoadMUS("Resources/Audio/Music/terraria.mp3");
+	tema5 = Mix_LoadMUS("Resources/Audio/Music/gravity.mp3");
+	tema6 = Mix_LoadMUS("Resources/Audio/Music/doom.mp3");
+	tema7 = Mix_LoadMUS("Resources/Audio/Music/doki.mp3");
+	tema8 = Mix_LoadMUS("Resources/Audio/Music/bossfight.mp3");
+	tema9 = Mix_LoadMUS("Resources/Audio/Music/badapple.mp3");
+	tema10 = Mix_LoadMUS("Resources/Audio/Music/konosuba.mp3");
+
+
+	if(tipo >= 0 && tipo < 10){
+		Mix_PlayMusic(tema,-1);
+	}else if(tipo >= 10 && tipo < 20){
+		Mix_PlayMusic(tema2,-1);
+	}else if(tipo >= 20 && tipo < 30){
+		Mix_PlayMusic(tema3,-1);
+	}else if(tipo >= 30 && tipo < 40){
+		Mix_PlayMusic(tema4,-1);
+	}else if(tipo >= 40 && tipo < 50){
+		Mix_PlayMusic(tema5,-1);
+	}else if(tipo >= 50 && tipo < 60){
+		Mix_PlayMusic(tema6,-1);
+	}else if(tipo >= 60 && tipo < 70){
+		Mix_PlayMusic(tema7,-1);
+	}else if(tipo >= 70 && tipo < 80){
+		Mix_PlayMusic(tema8,-1);
+	}else if(tipo >= 80 && tipo < 90){
+		Mix_PlayMusic(tema9,-1);
+	}else if(tipo >=90 && tipo < 100){
+		Mix_PlayMusic(tema10,-1);
+	}else if(tipo > 100){
+		Mix_PlayMusic(tema10,-1);
+	}
+
 }
