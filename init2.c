@@ -30,7 +30,7 @@ SDL_Texture* LoadTexture(const char* filepath, SDL_Renderer* renderTarget){
 
 	return texture;
 }
-
+//carga texto como fuente
 SDL_Texture* LoadFromRenderedText(const char* textureText, TTF_Font *gFont, SDL_Renderer* renderer, SDL_Color textColor){
 	//Lo mismo que la función anterior pero con texto
 	SDL_Surface* textSurface = TTF_RenderText_Solid(gFont, textureText, textColor);
@@ -48,13 +48,13 @@ char *my_itoa(int num, char *str)
         sprintf(str, "%d", num);
         return str;
 }
-
+//hace un swap
 void intercambiar(int *a , int *b){
   int temporal = *a;
   *a = *b;
   *b = temporal;
 }
-
+//ordena de forma directa
 void seleccion(int arreglo[] , int longitud){
   for(int i = 0; i < longitud - 1; i++){
     for(int j = i + 1; j < longitud ; j++){
@@ -86,19 +86,19 @@ void mixMusica(Mix_Music *tema , Mix_Music *tema2 , Mix_Music *tema3 , Mix_Music
 
 int mainMenu(int menu){
 
-	char fraseMainMenu[] = "Selecciona una opción \n";
+	char fraseMainMenu[] = "Bienvenido, selecciona una opción \n";
 	char Instrucciones[] = "                                 Mueveté con las flechas izquierda y derecha,\n                  Pausa la música con la flecha hacia arriba y reanudala con flecha hacia abajo,\n                                          Dispara con la barra espaciadora\n                                          Cambia la cancion con la tecla M\nAl combinar una de las teclas de movimiento con la tecla espacio harás un dash en la direcceón seleccionada\n";
 	char Records[10000]; // Records[5]; pos1: puntaje1 , pos2: \n , pos3: puntaje2 , pos4: \n , pos5: puntaje 3
 	FILE *score;
 	extraerPuntajes(score , Records);
-		while(menu == INT_MIN){
-	    	const SDL_MessageBoxButtonData buttons[] = {
+		while(menu == INT_MIN){ //el menu se ejecuta mientras menu sea INT_MIN
+	    	const SDL_MessageBoxButtonData buttons[] = { //esto crea los botones
            	 	{        0, 0, "Jugar" },
             	{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Instrucciones" },
             	{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 2,"Récords"  },
             	{3,3,"Salir"}
         	};
-        	const SDL_MessageBoxColorScheme colorScheme = {
+        	const SDL_MessageBoxColorScheme colorScheme = { //esto define los colores del menu
             	{
 
                 	{ 0,   0,   0 },
@@ -112,7 +112,7 @@ int mainMenu(int menu){
                 	{ 255,   0, 255 }
             	}
         	};
-        	const SDL_MessageBoxData messageboxdata = {
+        	const SDL_MessageBoxData messageboxdata = { //eso define los datos de la ventana y la frase del menu, se le entrega el esquema de botones y de colores
             	SDL_MESSAGEBOX_INFORMATION,
             	NULL,
             	"Space Invaders",
@@ -121,19 +121,20 @@ int mainMenu(int menu){
             	buttons,
            	 	&colorScheme
         	};
-        	int buttonid;
+        	int buttonid; // a cada boton se le asigna un numero entero, si se selecciona una boton, su valor se guarda en buttonid, se comparan los valores
         	if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
             	SDL_Log("error displaying message box");
             	return 1;
         	}
         	if (buttonid == -1) {
             	SDL_Log("no selection");
+							SDL_Quit();
         	} else if(buttonid == 0){ //pa jugar
             	menu = 0;
             	break;
         	} else if(buttonid == 1){ //Instrucciones
     			menu = 2;
-    			while(menu == 2){
+    			while(menu == 2){ // se crea un submenu para las Instrucciones
     				const SDL_MessageBoxButtonData botones[] = {
         	    		//{SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,0,"Instrucciones"},
         	    		{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,1,"Volver al menú"},
@@ -171,7 +172,7 @@ int mainMenu(int menu){
         		}
         	} else if(buttonid == 2){ //Récords
     			menu = 10;
-    			while(menu == 10){
+    			while(menu == 10){ //sub menu para los records
     				const SDL_MessageBoxButtonData botones1[] = {
     			       	//{SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,0,"Hola"},
     			       	{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,1,"Volver al menú"},
@@ -200,20 +201,20 @@ int mainMenu(int menu){
     			    	printf("error\n");
     			        return 1;
     			    }
-    			    if(idBoton1 == -1) SDL_Log("No seleccion");
+    			    if(idBoton1 == SDL_QUIT) SDL_Quit();
 
     			    else if(idBoton1 == 1){
 
-    			    menu = INT_MIN;
+    			    	menu = INT_MIN;
     			    }
     			}
         	}
         	else if(buttonid == 3){ //Salir
         		menu = -1;
-        		SDL_Quit;
+        		SDL_Quit();
         	}
         	else {
-            	SDL_Log("selection was %s", buttons[buttonid].text);
+            SDL_Quit();
         	}
     	}
     	return menu;
@@ -393,27 +394,30 @@ int main(int argc, char* argv[]){
 	mixMusica(tema , tema2 , tema3 , tema4 , tema5 , tema6 , tema7 , tema8 , tema9 , tema10);
 
 	do{
-		double rapidez; //= nivel * (0.7);
-		double rapidez2; //= nivel * (0.5);
+		double rapidez;
+		double rapidez2;
 		//curva de dificultad
-		if(nivel < 6){
+		if(nivel == 1){ //el radio crece a la misma velocidad que el angulo
+			rapidez = nivel;
+			rapidez2 = nivel;
+		}else if(nivel > 1 && nivel < 6){ //el radio crece un poco más rápido que el angulo
 			rapidez = nivel * (0.7);
 			rapidez2 = nivel * (0.5);
-		}else if(nivel > 4 && nivel < 11){
+		}else if(nivel > 4 && nivel < 11){ // el radio crece más rapido y el angulo más lento
 			rapidez = nivel * (0.7) - 0.25;
 			rapidez2 = nivel * (0.3) - 0.7;
-		}else{
+		}else{ //el radio crece más lento y el angulo más rapido
 			rapidez = nivel * (0.3) - 0.85;
 			rapidez2 = nivel * (0.7) - 0.55;
 		}
 
 		//LOOP PA DISEÑO BONITO , diseño de circulo al inicio
 		for(int i = 0; i < 20; i++){
-			if(alieninfo[i][0] != -1 && initSpawner < 20){
-				alieninfo[i][0] = 1;
-				alieninfo[i][1] = 2;
-				alieninfo[i][2] = i*M_PI/5;
-				if(i < 10){
+			if(alieninfo[i][0] != -1 && initSpawner < 20){ //si el alien no esta muerto y el control de spawn es menor que 20
+				alieninfo[i][0] = 1; 		//	inicia en 1
+				alieninfo[i][1] = 2; 		//	se mueve en espiral (circulo)
+				alieninfo[i][2] = i*M_PI/5; 	//	como varia el anuglo
+				if(i < 10){ //para dar la forma de los circulos
 					alieninfo[i][3] = 25;
 				}else{
 					alieninfo[i][3] = 50;
@@ -478,45 +482,46 @@ int main(int argc, char* argv[]){
 		//Hace cosas con las balas del jugador
 		for (int i = 0; i < 10; i++)
 		{
-			if (balas[i][0] == 0){
+			if (balas[i][0] == 0){ //si no hay balas
 				p_bullet[i].x = XSIZE;
 				p_bullet[i].y = YSIZE;
 			}
-			if (balas[i][0] == 1)
+			if (balas[i][0] == 1) //si hay balas
 			{
-				p_bullet[i].x += balas[i][1]/10;
-				p_bullet[i].y += balas[i][2]/10;
-				SDL_QueryTexture(b_Texture, NULL, NULL, &p_bullet[i].w, &p_bullet[i].h);
-				SDL_RenderCopy(renderer, b_Texture, NULL, &p_bullet[i]);
+				p_bullet[i].x += balas[i][1]/10; //como se mueve la bala en x
+				p_bullet[i].y += balas[i][2]/10; //como se mueve la bala en y
+				SDL_QueryTexture(b_Texture, NULL, NULL, &p_bullet[i].w, &p_bullet[i].h); //crea una bala
+				SDL_RenderCopy(renderer, b_Texture, NULL, &p_bullet[i]); //imprime la bala
 			}
-			if (p_bullet[i].x < 0 || p_bullet[i].y < 0 || p_bullet[i].x > XSIZE || p_bullet[i].y > YSIZE){
-				balas[i][0] = 0;
+			if (p_bullet[i].x < 0 || p_bullet[i].y < 0 || p_bullet[i].x > XSIZE || p_bullet[i].y > YSIZE){ // si las balas no estan en pantalla
+				balas[i][0] = 0; //las borra
 			}
 		}
 
 		//Hace cosas con los aliens
 		for (int i = 0; i < 100; i++)
 		{
-			if (alieninfo[i][0] == 0){
+			if (alieninfo[i][0] == 0){ //si se inician en 0 , el alien esta muerto y lo revive
 				aliens[i].x = XSIZE;
 				aliens[i].y = YSIZE;
 			}
-			if (alieninfo[i][0] == 1)
+			if (alieninfo[i][0] == 1) //si se inician en 1 , el alien esta vivo,
 			{
 				for(int u=0; u<10; u++){
-					if(SDL_HasIntersection(&p_bullet[u], &aliens[i]) == SDL_TRUE
+					if(SDL_HasIntersection(&p_bullet[u], &aliens[i]) == SDL_TRUE //si una bala colisiona con el alien
 				     && aliens[i].x > 1 && aliens[i].y > 1){
-						alieninfo[i][0] = -1;
-						balas[u][0] = 0;
+						alieninfo[i][0] = -1; //el alien muere
+						balas[u][0] = 0; //la bala se borra
 						puntaje += 100;	//Colision alien-bala
 					}
 				}
-				if(SDL_HasIntersection(&ship, &aliens[i]) == SDL_TRUE
+				if(SDL_HasIntersection(&ship, &aliens[i]) == SDL_TRUE //si un alien colisiona con una nave
 			     && aliens[i].x > 1 && aliens[i].y > 1){
-					alieninfo[i][0] = -1;
+					alieninfo[i][0] = -1; //un alien muerto
 					vida --;	//Colision nave-alien
 				}
 				if(vida == 0){
+					Mix_PlayChannel(-2,explosion,0);
 					initSpawner = 0;
 					Top(score,puntaje,puntos);
 					Mix_PlayChannel(-1,explosion,0);
@@ -524,11 +529,10 @@ int main(int argc, char* argv[]){
 					gameOver = menuMuerte(gameOver);
 
 					if(gameOver == CHAR_BIT){ //volver a jugar
-						//Reinicia los aliens
-						for(int i=0; i<100; i++){
+						for(int i=0; i<100; i++){//Reinicia los aliens
 							alieninfo[i][0] = 0;
 						}
-						vida = 3;
+						vida = 3;//reinicia los stats
 						nivel = 1;
 						puntaje = 0;
 						gameOver = 0;
@@ -538,6 +542,8 @@ int main(int argc, char* argv[]){
 						puntaje = 0;
 						gameOver = mainMenu(gameOver);
 					}else{ //salir
+						SDL_Quit();
+						Mix_Quit();
 						break;
 					}
 
@@ -545,11 +551,11 @@ int main(int argc, char* argv[]){
 				//los alien se disparan contra la nave dependiendo de la variable disparoAlien, la velocidad del mov depende del nivel
 				int disparoAlien = rand() % 101;
 
-				if(nivel < 4){
-					if(disparoAlien > 65){
-						if(alieninfo[i][1] == 1){
-							aliens[i].x += alieninfo[i][4] * rapidez2 / 2;
-							aliens[i].y += alieninfo[i][5] * rapidez2 / 2;
+				if(nivel < 4 || nivel > 16){ //los aliens se disparan entre los niveles
+					if(disparoAlien > 65){ // si disparoAlien es mayor que 65
+						if(alieninfo[i][1] == 1){ //si el mov es recto
+							aliens[i].x += alieninfo[i][4] * rapidez2 / 2 - 5; //
+							aliens[i].y += alieninfo[i][5] * rapidez2 / 2 - 5;
 						}
 					}
 				}
@@ -557,25 +563,23 @@ int main(int argc, char* argv[]){
 				if(alieninfo[i][1] == 2){
 					alieninfo[i][3] += (0.05) * rapidez; //radio
 					alieninfo[i][2] += 1*M_PI/180 * rapidez2; //angulo
-					aliens[i].x = (int)(alieninfo[i][3]*sin(alieninfo[i][2]) + (XSIZE - aliens->w)/2);
-					aliens[i].y = (int)(alieninfo[i][3]*cos(alieninfo[i][2]) + (YSIZE - aliens->h)/2);
+					aliens[i].x = (int)(alieninfo[i][3]*sin(alieninfo[i][2]) + (XSIZE - aliens->w)/2); //mov circular
+					aliens[i].y = (int)(alieninfo[i][3]*cos(alieninfo[i][2]) + (YSIZE - aliens->h)/2); //mov circular
 				}
-				SDL_QueryTexture(al_Texture, NULL, NULL, &aliens[i].w, &aliens[i].h);
-				SDL_RenderCopy(renderer, al_Texture, NULL, &aliens[i]);
+				SDL_QueryTexture(al_Texture, NULL, NULL, &aliens[i].w, &aliens[i].h); //
+				SDL_RenderCopy(renderer, al_Texture, NULL, &aliens[i]);	//imprime el alien
 			}
-			if (aliens[i].x < 0 || aliens[i].y < 0 || aliens[i].x > XSIZE || aliens[i].y > YSIZE){
-				alieninfo[i][0] = 0;
+			if (aliens[i].x < 0 || aliens[i].y < 0 || aliens[i].x > XSIZE || aliens[i].y > YSIZE){ //si el alien esta fuera de la pantalla
+				alieninfo[i][0] = 0; //lo elimina
 			}
 		}
 
 		int cuentaAliens = 0; //aliens muertos
 		for(int i=0; i<100; i++){
-			if (alieninfo[i][0] == -1) {
+			if (alieninfo[i][0] == -1) { //por cada alien muerto, suma 1 al contador;
 				cuentaAliens += 1;
 			}
-			//alieninfo[i][2] = 1*M_PI/180*(0.25)*nivel;//modifica el angulo
-			//alieninfo[i][3] += (0,05)*nivel*(0.25); //modifica el radio
-			if (cuentaAliens == 100) {
+			if (cuentaAliens == 100) { //si el contador llega a 100
 				//INICIAR NIVEL NUEVO
 				nivel += 1;
 				initSpawner = 0;
@@ -588,8 +592,7 @@ int main(int argc, char* argv[]){
 		SDL_RenderCopy(renderer, ship_texture, NULL, &ship);
 		SDL_RenderCopy(renderer, txt_Texture, NULL, &texto);
 		SDL_RenderCopy(renderer, vidas, NULL,&texto2);
-
-		//presenta la imagen, creo
+		//presenta la imagen
 		SDL_RenderPresent(renderer);
 		SDL_Delay(MS);
 	}while(!gameOver);
@@ -611,10 +614,11 @@ void NaveAvanzaIzqDer(Uint32 *dash, SDL_Rect *ship, int *vx, double *radio, doub
 
 	*delta += *vx*M_PI/45;
 
-	if((keys[SDL_SCANCODE_SPACE]) && (tiempo_actual - *dash) > 500){ //si se presiona el espacio y han pasado x segundos
+	if((keys[SDL_SCANCODE_SPACE]) && (tiempo_actual - *dash) > 500){ //si se presiona el espacio y han pasado x segundos (cd)
 		*delta += *vx*M_PI/5;
 		*dash = tiempo_actual;
 	}
+	//mov circular de la nave
 	ship->x = (int)(*radio*sin(*delta) + (XSIZE - ship->w)/2);
 	ship->y = (int)(*radio*cos(*delta) + (YSIZE - ship->h)/2);
 }
@@ -626,13 +630,13 @@ void NaveDispara(Uint32 *time, SDL_Rect *ship, SDL_Rect *p_bullet, int balas[10]
 	for (int i = 0; i < 10; i++)
 	{
 		//1 significa inicializado. 0 es una bala disponible
-		if(balas[i][0] == 0 && (tiempo_actual - *time) > 150){
+		if(balas[i][0] == 0 && (tiempo_actual - *time) > 225){ //tiempo entre cada disparo
 			balas[i][0] = 1;
-			p_bullet[i].x = ship->x;
+			p_bullet[i].x = ship->x;//donde parte la bala
 			p_bullet[i].y = ship->y;
 
 			//Calcula la velocidad de la bala
-			balas[i][1] = -1*(p_bullet[i].x - (XSIZE/2));
+			balas[i][1] = -1*(p_bullet[i].x - (XSIZE/2));//la bala avanza hacia el centro
 			balas[i][2] = -1*(p_bullet[i].y - (YSIZE/2));
 
 			//Dibuja la bala en pantalla
@@ -654,17 +658,17 @@ void AlienSpawn(SDL_Rect *ship, SDL_Rect *aliens, double alieninfo[100][6], Uint
 	for (int i = 0; i < 100; i++)
 	{
 		//1 significa inicializado. 0 es una bala disponible
-		if(alieninfo[i][0] == 0 && tiempo_actual - *spawntime > 150){
+		if(alieninfo[i][0] == 0 && tiempo_actual - *spawntime > 150){//tiempo de aparicion de cada alien
 			aliens[i].x = XSIZE/2;
 			aliens[i].y = YSIZE/2 - 1;
 			alieninfo[i][0] = 1;
-			if(tipo <= 10){ //Probabilidad de [i][1] = 1
-				alieninfo[i][1] = 1;
-				alieninfo[i][4] = (ship->x - (XSIZE + ship->w)/2)/20;
+			if(tipo <= 10){ //Probabilidad de [i][1] = 1 (prob mov recto)
+				alieninfo[i][1] = 1; //mov recto
+				alieninfo[i][4] = (ship->x - (XSIZE + ship->w)/2)/20; //el alien se mueve hacia la nave
 				alieninfo[i][5] = (ship->y - (YSIZE + ship->h)/2)/20;
 			}
-			if(tipo > 45){ //Probabilidad de [i][1] = 2
-				alieninfo[i][1] = 2;
+			if(tipo > 45){ //Probabilidad de [i][1] = 2 (prob de mov espiral)
+				alieninfo[i][1] = 2; //mov espiral
 				alieninfo[i][2] = 0;
 				alieninfo[i][3] = 1;
 			}
@@ -675,53 +679,54 @@ void AlienSpawn(SDL_Rect *ship, SDL_Rect *aliens, double alieninfo[100][6], Uint
 	}
 }
 void Top(FILE *archivo, int puntaje,char *puntos){
+	//crea 3 arreglos
 	char guardado1[10000];
 	char guardado2[10000];
 	char guardado3[10000];
-
+	//los rellena con espacios
 	for(int i = 0; i < 10000 ; i++){
 		guardado1[i] = ' ';
 		guardado2[i] = ' ';
 		guardado3[i] = ' ';
 	}
-
+	//abre el archivo para lectura
 	archivo = fopen("score.txt","r");
-
+	//obtiene los 3 puntajes (1 de cada linea) y los guarda en cada uno de los arreglos anteriores
 	fgets(guardado1,10000,archivo);
 	fgets(guardado2,10000,archivo);
 	fgets(guardado3,10000,archivo);
-
+	//se cierra el archivo
 	fclose(archivo);
 
-
+	//se crean 3 variables enteras para guardar los puntajes en numero entero
 	int puntaje1 = atoi(guardado1);
 	int puntaje2 = atoi(guardado2);
 	int puntaje3 = atoi(guardado3);
-
+	//se crea un arreglo para los puntajes
 	int puntajes[4];
 	puntajes[0] = puntaje1;
 	puntajes[1] = puntaje2;
 	puntajes[2] = puntaje3;
 	puntajes[3] = puntaje;
-
+	//se ordena el arreglo
 	seleccion(puntajes , 4);
-
+	//se crea un arreglo auxiliar para llenar el txt
 	char puntajeaux[10000];
-
+	//se abre el txt para escribir datos
 	archivo = fopen("score.txt","w");
-
+	// se ingresa el primer valor, segundo ,....
 	fputs(my_itoa(puntajes[0],puntajeaux) , archivo);
 	fputs("\n" , archivo );
 	fputs(my_itoa(puntajes[1],puntajeaux) , archivo);
 	fputs("\n", archivo );
 	fputs(my_itoa(puntajes[2],puntajeaux) , archivo);
 	fputs("\n", archivo );
-
+	//se cierra el archivo
 	fclose(archivo);
 }
 void mixMusica(Mix_Music *tema , Mix_Music *tema2 , Mix_Music *tema3 , Mix_Music *tema4 , Mix_Music *tema5 , Mix_Music *tema6 , Mix_Music *tema7 , Mix_Music *tema8 , Mix_Music *tema9 , Mix_Music *tema10){
 	int tipo = rand() % 101;
-
+	//musica aleatoria
 	tema = Mix_LoadMUS("Resources/Audio/Music/megalovania.mp3");
 	tema2 = Mix_LoadMUS("Resources/Audio/Music/invaders.mp3");
 	tema3 = Mix_LoadMUS("Resources/Audio/Music/start.mp3");
