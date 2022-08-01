@@ -1,13 +1,4 @@
-/*
-Falta:
-- leer score, guardar score , modificar score (en resumen)
-	-Hacer el top, comparar el puntaje obtenido en el top y modificarlo
--agregar nuevas mecanicas
-	-caja "bonus"
-		- te nerfea
-		-o te da bonus
-int
-*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,6 +48,23 @@ char *my_itoa(int num, char *str)
         sprintf(str, "%d", num);
         return str;
 }
+
+void intercambiar(int *a , int *b){
+  int temporal = *a;
+  *a = *b;
+  *b = temporal;
+}
+
+void seleccion(int arreglo[] , int longitud){
+  for(int i = 0; i < longitud - 1; i++){
+    for(int j = i + 1; j < longitud ; j++){
+      if(arreglo[i] < arreglo[j]){
+        intercambiar(&arreglo[i] , &arreglo[j]);
+      }
+    }
+  }
+}
+
 void Top(FILE *archivo, int puntaje,char *puntos);
 //Función que mueve la nave de forma circunferencial
 void NaveAvanzaIzqDer(Uint32 *dash, SDL_Rect *ship, int *vx, double *radio, double *delta);
@@ -79,7 +87,7 @@ void mixMusica(Mix_Music *tema , Mix_Music *tema2 , Mix_Music *tema3 , Mix_Music
 int mainMenu(int menu){
 
 	char fraseMainMenu[] = "Selecciona una opción \n";
-	char Instrucciones[] = "                  Mueveté con las flechas izquierda y derecha,\n   Pausa la música con la flecha hacia arriba y reanudala con flecha hacia abajo,\n                        Dispara con la barra espaciadora\n                       Y cambia la cancion con la tecla M\n\n";
+	char Instrucciones[] = "                                 Mueveté con las flechas izquierda y derecha,\n                  Pausa la música con la flecha hacia arriba y reanudala con flecha hacia abajo,\n                                          Dispara con la barra espaciadora\n                                          Cambia la cancion con la tecla M\nAl combinar una de las teclas de movimiento con la tecla espacio harás un dash en la direcceón seleccionada\n";
 	char Records[10000]; // Records[5]; pos1: puntaje1 , pos2: \n , pos3: puntaje2 , pos4: \n , pos5: puntaje 3
 	FILE *score;
 	extraerPuntajes(score , Records);
@@ -181,7 +189,7 @@ int mainMenu(int menu){
     			    const SDL_MessageBoxData datosBotones1 = {
     			        SDL_MESSAGEBOX_INFORMATION,
     			        NULL,
-    			        "Instrucciones",
+    			        "Records",
     			        Records,
     			        SDL_arraysize(botones1),
     			        botones1,
@@ -270,7 +278,7 @@ int main(int argc, char* argv[]){
 	gameOver = mainMenu(gameOver);
 
 
-	if(gameOver == 3){
+	if(gameOver == -1){
 		Mix_Quit();
 		SDL_Quit();
 		return 0;
@@ -318,7 +326,6 @@ int main(int argc, char* argv[]){
 	gFont = TTF_OpenFont("Resources/Fonts/Minecraft.ttf", 28);
 	SDL_Rect texto;
 	SDL_Rect texto2;
-	SDL_Rect GamerOver;
 	SDL_Color color = {255, 255, 255};
 	SDL_Texture* txt_Texture = LoadFromRenderedText("Hola", gFont, renderer, color);
 
@@ -385,7 +392,7 @@ int main(int argc, char* argv[]){
 	mixMusica(tema , tema2 , tema3 , tema4 , tema5 , tema6 , tema7 , tema8 , tema9 , tema10);
 
 	do{//se niega gameOver para que se considere verdadera, mientras sea "verdadera" tb se puede usar la condicion gameOver==0
-		double rapidez = nivel * (0.75);
+		double rapidez = nivel * (0.7);
 		double rapidez2 = nivel * (0.5);
 		//LOOP PA DISEÑO BONITO
 		for(int i=0; i<20; i++){
@@ -393,9 +400,11 @@ int main(int argc, char* argv[]){
 				alieninfo[i][0] = 1;
 				alieninfo[i][1] = 2;
 				alieninfo[i][2] = i*M_PI/5;
-				if(i < 10){alieninfo[i][3] = 25;}
-				else{alieninfo[i][3] = 50;}
-
+				if(i < 10){
+					alieninfo[i][3] = 25;
+				}else{
+					alieninfo[i][3] = 50;
+				}
 				initSpawner += 1;
 			}
 		}
@@ -403,7 +412,7 @@ int main(int argc, char* argv[]){
 		//Texturas a actualizar
 		SDL_Texture* txt_Texture = LoadFromRenderedText(my_itoa(puntaje, puntos), gFont, renderer, color);
 		SDL_Texture* vidas = LoadFromRenderedText(my_itoa(vida,manzana),gFont,renderer,color);
-		SDL_Texture* go = LoadFromRenderedText(NULL, gFont,renderer,color);
+
 		//RenderClear limpia la ventana con un color X
 		SDL_RenderClear(renderer);
 		if(SDL_PollEvent(&event)){ //si se detecta la pulsacion de una tecla
@@ -450,13 +459,11 @@ int main(int argc, char* argv[]){
 		texto.y = 0;
 		texto2.x = 100;
 		texto2.y = 0;
-		GamerOver.x = XSIZE/2;
-		GamerOver.y = YSIZE/2;
 
 		//Pide info de texturas
 		SDL_QueryTexture(ship_texture, NULL, NULL, &ship.w, &ship.h);
 		SDL_QueryTexture(txt_Texture, NULL, NULL, &texto.w, &texto.h);
-		SDL_QueryTexture(go, NULL, NULL, &GamerOver.w, &GamerOver.h);
+
 		SDL_QueryTexture(vidas,NULL,NULL,&texto2.w, &texto2.h );
 		//Hace cosas con las balas del jugador
 		for (int i = 0; i < 10; i++)
@@ -500,7 +507,8 @@ int main(int argc, char* argv[]){
 					vida --;	//Colision nave-alien
 				}
 				if(vida == 0){
-
+					initSpawner = 0;
+					Top(score,puntaje,puntos);
 					Mix_PlayChannel(-1,explosion,0);
 					gameOver = INT_MAX;
 					gameOver = menuMuerte(gameOver);
@@ -510,13 +518,11 @@ int main(int argc, char* argv[]){
 						for(int i=0; i<100; i++){
 							alieninfo[i][0] = 0;
 						}
-						initSpawner = 0;
 						vida = 3;
 						nivel = 1;
 						puntaje = 0;
 						gameOver = 0;
 					}else if(gameOver == INT_MIN){ //volver al menu principal
-						initSpawner = 0;
 						nivel = 1;
 						vida = 3;
 						puntaje = 0;
@@ -528,10 +534,12 @@ int main(int argc, char* argv[]){
 				}
 				//los alien se disparan contra la nave dependiendo de la variable disparoAlien, la velocidad del mov depende del nivel
 				int disparoAlien = rand() % 101;
-				if(disparoAlien > 65){
-					if(alieninfo[i][1] == 1){
-						aliens[i].x += alieninfo[i][4] * rapidez2 / 2;
-						aliens[i].y += alieninfo[i][5] * rapidez2 / 2;
+				if(nivel < 4){
+					if(disparoAlien > 65){
+						if(alieninfo[i][1] == 1){
+							aliens[i].x += alieninfo[i][4] * rapidez2 / 2;
+							aliens[i].y += alieninfo[i][5] * rapidez2 / 2;
+						}
 					}
 				}
 				//modifica el movimiento en espiral de los aliens segun el nivel
@@ -569,7 +577,7 @@ int main(int argc, char* argv[]){
 		SDL_RenderCopy(renderer, ship_texture, NULL, &ship);
 		SDL_RenderCopy(renderer, txt_Texture, NULL, &texto);
 		SDL_RenderCopy(renderer, vidas, NULL,&texto2);
-		//SDL_RenderCopy(renderer,go,NULL,&GamerOver);   //no se imprime ;-;
+
 		//presenta la imagen, creo
 		SDL_RenderPresent(renderer);
 		SDL_Delay(MS);
@@ -582,8 +590,8 @@ int main(int argc, char* argv[]){
 	SDL_DestroyWindow(window);
 	Mix_Quit();
 	SDL_Quit();
-	Top(score,puntaje,puntos);
-	fclose(score);
+
+	//fclose(score);
 
 	return 0;
 }
@@ -665,42 +673,45 @@ void Top(FILE *archivo, int puntaje,char *puntos){
 	char guardado1[10000];
 	char guardado2[10000];
 	char guardado3[10000];
+
+	for(int i = 0; i < 10000 ; i++){
+		guardado1[i] = ' ';
+		guardado2[i] = ' ';
+		guardado3[i] = ' ';
+	}
+
 	archivo = fopen("score.txt","r");
+
 	fgets(guardado1,10000,archivo);
 	fgets(guardado2,10000,archivo);
 	fgets(guardado3,10000,archivo);
+
 	fclose(archivo);
+
+
+	int puntaje1 = atoi(guardado1);
+	int puntaje2 = atoi(guardado2);
+	int puntaje3 = atoi(guardado3);
+
+	int puntajes[4];
+	puntajes[0] = puntaje1;
+	puntajes[1] = puntaje2;
+	puntajes[2] = puntaje3;
+	puntajes[3] = puntaje;
+
+	seleccion(puntajes , 4);
+
+	char puntajeaux[10000];
+
 	archivo = fopen("score.txt","w");
-	if(puntaje>atoi(guardado1))
-	{
-		fputs(my_itoa(puntaje,puntos),archivo);
-		fputs("\n",archivo);
-		fputs(guardado2,archivo);
-		fputs(guardado3,archivo);
-		printf("Se remplazo 1\n");
 
-	}else if(puntaje>atoi(guardado2) && puntaje<atoi(guardado1))
-	{
-		fputs(guardado1,archivo);
-		fputs(my_itoa(puntaje,puntos),archivo);
-		fputs("\n",archivo);
-		fputs(guardado3,archivo);
-		printf("Se remplazo 2\n");
+	fputs(my_itoa(puntajes[0],puntajeaux) , archivo);
+	fputs("\n" , archivo );
+	fputs(my_itoa(puntajes[1],puntajeaux) , archivo);
+	fputs("\n", archivo );
+	fputs(my_itoa(puntajes[2],puntajeaux) , archivo);
+	fputs("\n", archivo );
 
-	}else if(puntaje>atoi(guardado3) && puntaje<atoi(guardado2))
-	{
-		fputs(guardado1,archivo);
-		fputs(guardado2,archivo);
-		fputs(my_itoa(puntaje,puntos),archivo);
-		printf("Se remplazo 3\n");
-
-	}
-	if(puntaje<atoi(guardado3))
-	{
-		fputs(guardado1,archivo);
-		fputs(guardado2,archivo);
-		fputs(guardado3,archivo);
-	}
 	fclose(archivo);
 }
 void mixMusica(Mix_Music *tema , Mix_Music *tema2 , Mix_Music *tema3 , Mix_Music *tema4 , Mix_Music *tema5 , Mix_Music *tema6 , Mix_Music *tema7 , Mix_Music *tema8 , Mix_Music *tema9 , Mix_Music *tema10){
