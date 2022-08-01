@@ -268,7 +268,6 @@ int menuMuerte(int gameOver){
 }
 
 int main(int argc, char* argv[]){
-	//Carga el archivo del score
 	FILE *score;
 	char scores[10000];
 	//VolerMenu:
@@ -284,40 +283,38 @@ int main(int argc, char* argv[]){
 		return 0;
 	}
 
-	//if(gameOver == INT_MIN) gameOver = mainMenu(gameOver);
-
 	TTF_Init();
-	//si SDL no se inicia lanza una ventana de error
+	//ventana de error de SDL
 	if(SDL_Init(SDL_INIT_EVERYTHING)<0){
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error",SDL_GetError(),NULL);
 	}
 	int typeEvent;//crea una variable entera typeEvent para almacenar la entrada de tecla
-	//crea una variable entera para controlar si sigue dentro del ciclo del juego o no
 
 	const unsigned char *keys;//crea una constante char sin signo para identificar la tecla que se pulsa
 
-	SDL_Window *window;//crea un puntero de tipo ventana con nombre window
-	SDL_Renderer *renderer;//crea un puntero de tipo Render con nombre renderer
+	SDL_Window *window;//crea la ventana que se va a utilizar
+	SDL_Renderer *renderer;//crea el render que se utilizara
 	SDL_Event event;//crea una variable de tipo evento
 	TTF_Font *gFont; //La fuente a ser utilizada
 
 	/*
-	Creamos un puntero que crea la ventana del juego, el nombre de la ventana es Space Invader, XSIZE es el ancho, definido como 600. YSIXE es el alto, definido como 600
+	Creamos un puntero que crea la ventana del juego, el nombre de la ventana es Space Invader, XSIZE es el ancho, definido como 600.
+	YSIXE es el alto, definido como 600
 	los dos primeros parametros son para establecer en que posicion se abre la venta, y el ultimo muestra la ventana
 	renderer renderiza la imagen en la ventana
 	*/
 
-	window = SDL_CreateWindow("Space Invaders",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,XSIZE,YSIZE,SDL_WINDOW_SHOWN);
+	window = SDL_CreateWindow("Space Invaders" , SDL_WINDOWPOS_UNDEFINED , SDL_WINDOWPOS_UNDEFINED , XSIZE , YSIZE , SDL_WINDOW_SHOWN);
 
 	//Initialize SDL_mixer
   if( Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) < 0){
       printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
   }
+	//renderiza la imagen, primer parametro es donde lo hace, el segundo el canal, y el tercero el modo
+	renderer=SDL_CreateRenderer(window , -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-	renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-
-	keys=SDL_GetKeyboardState(NULL);//se le asigna a keys la funcion GetKeyboardState, que detecta que tecla fue pulsada, la tecla presionada se guarda en key
-
+	//a keys se le asigna niguna tecla (no se ha pulsado ninguna tecla)
+	keys = SDL_GetKeyboardState(NULL);
 	//ACA ASIGNAMOS TEXTURAS Y COLISIONES
 	SDL_Texture* ship_texture = LoadTexture("Resources/Sprites/Nave_new.png", renderer);
 	SDL_Texture* b_Texture = LoadTexture("Resources/Sprites/Bullet(16)/Bullet_01.png", renderer);
@@ -352,7 +349,8 @@ int main(int argc, char* argv[]){
 	Mix_Chunk *explosion;
 
 	sonido = Mix_LoadWAV("Resources/Audio/disparoNave.wav");
-		//Variables para el movimiento de la nave
+
+	//Variables para el movimiento de la nave
 	float ox, oy;
 	double radio = 200;
 	ox = (XSIZE - ship.w)/2 + radio;
@@ -374,7 +372,10 @@ int main(int argc, char* argv[]){
 	//[x][3] variable radio
 	//[x][4] Velocidad inicial x
 	//[x][5] Velocidad inicial y
-	double alieninfo[100][6]; for(int i=0; i<100; i++){alieninfo[i][0] = 0;}
+	double alieninfo[100][6];
+	for(int i=0; i<100; i++){
+		alieninfo[i][0] = 0;
+	}
 	SDL_Rect aliens[100];
 
 	//comienza un contador
@@ -387,15 +388,27 @@ int main(int argc, char* argv[]){
 	char puntos[10000];
 	char manzana[50];
 	int initSpawner = 0;
-	//
+
 	double nivel = 1;
 	mixMusica(tema , tema2 , tema3 , tema4 , tema5 , tema6 , tema7 , tema8 , tema9 , tema10);
 
-	do{//se niega gameOver para que se considere verdadera, mientras sea "verdadera" tb se puede usar la condicion gameOver==0
-		double rapidez = nivel * (0.7);
-		double rapidez2 = nivel * (0.5);
-		//LOOP PA DISEÑO BONITO
-		for(int i=0; i<20; i++){
+	do{
+		double rapidez; //= nivel * (0.7);
+		double rapidez2; //= nivel * (0.5);
+		//curva de dificultad
+		if(nivel < 6){
+			rapidez = nivel * (0.7);
+			rapidez2 = nivel * (0.5);
+		}else if(nivel > 4 && nivel < 11){
+			rapidez = nivel * (0.7) - 0.25;
+			rapidez2 = nivel * (0.3) - 0.7;
+		}else{
+			rapidez = nivel * (0.3) - 0.85;
+			rapidez2 = nivel * (0.7) - 0.55;
+		}
+
+		//LOOP PA DISEÑO BONITO , diseño de circulo al inicio
+		for(int i = 0; i < 20; i++){
 			if(alieninfo[i][0] != -1 && initSpawner < 20){
 				alieninfo[i][0] = 1;
 				alieninfo[i][1] = 2;
@@ -409,14 +422,14 @@ int main(int argc, char* argv[]){
 			}
 		}
 
-		//Texturas a actualizar
+		//Texturas a actualizar , puntaje y vidas
 		SDL_Texture* txt_Texture = LoadFromRenderedText(my_itoa(puntaje, puntos), gFont, renderer, color);
 		SDL_Texture* vidas = LoadFromRenderedText(my_itoa(vida,manzana),gFont,renderer,color);
 
 		//RenderClear limpia la ventana con un color X
 		SDL_RenderClear(renderer);
 		if(SDL_PollEvent(&event)){ //si se detecta la pulsacion de una tecla
-			typeEvent=event.type; //ve que tipo de tecla se pulso
+			typeEvent = event.type; //ve que tipo de tecla se pulso
 			if(typeEvent== SDL_QUIT){ //si se presiono la x que cierra la ventana
 				gameOver=1; //termina el juego
 			}
@@ -424,7 +437,6 @@ int main(int argc, char* argv[]){
 				if(SDL_GetMouseState(NULL,NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)){ //si es el clicl izq
 					NaveDispara(&bulletTime, &ship, p_bullet, balas, renderer, b_Texture); //la nave dispara
 				}
-
 			}
 			else if(typeEvent == SDL_KEYDOWN){ //si se detecta la pulsacion de una tecla
 				if(keys[SDL_SCANCODE_ESCAPE]){	//guarda el tipo de tecla en keys
@@ -436,9 +448,7 @@ int main(int argc, char* argv[]){
 					int vx = 1; //la velocidad de la nave se hace positiva
 					NaveAvanzaIzqDer(&dashTime, &ship, &vx, &radio, &delta); //la nave se mueve
 				}else if(keys[SDL_SCANCODE_SPACE]){ //si se presiona el espacio
-					//Mix_PlayChannel(-1,sonido,0);
 					NaveDispara(&bulletTime, &ship, p_bullet, balas, renderer, b_Texture); //la nave dispara
-
 				}
 				//COMANDOS DE DESARROLLO
 				else if(keys[SDL_SCANCODE_UP]){ //Empieza musica
@@ -534,6 +544,7 @@ int main(int argc, char* argv[]){
 				}
 				//los alien se disparan contra la nave dependiendo de la variable disparoAlien, la velocidad del mov depende del nivel
 				int disparoAlien = rand() % 101;
+
 				if(nivel < 4){
 					if(disparoAlien > 65){
 						if(alieninfo[i][1] == 1){
@@ -573,7 +584,7 @@ int main(int argc, char* argv[]){
 				}
 			}
 		}
-
+		//actualiza las texturas de la nave, del puntaje y las vidas
 		SDL_RenderCopy(renderer, ship_texture, NULL, &ship);
 		SDL_RenderCopy(renderer, txt_Texture, NULL, &texto);
 		SDL_RenderCopy(renderer, vidas, NULL,&texto2);
@@ -582,17 +593,11 @@ int main(int argc, char* argv[]){
 		SDL_RenderPresent(renderer);
 		SDL_Delay(MS);
 	}while(!gameOver);
-
-	printf("\ngameOver %d\n, vida %d \n, puntaje %d\n ", gameOver,vida,puntaje);
 	//finaliza todo
-
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	Mix_Quit();
 	SDL_Quit();
-
-	//fclose(score);
-
 	return 0;
 }
 //para moverse de izquierda a derecha, dependera de la velocidad en el eje x
