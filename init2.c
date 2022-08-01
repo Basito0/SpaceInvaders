@@ -516,6 +516,8 @@ int main(int argc, char* argv[]){
 						puntaje = 0;
 						gameOver = 0;
 					}else if(gameOver == INT_MIN){ //volver al menu principal
+						initSpawner = 0;
+						nivel = 1;
 						vida = 3;
 						puntaje = 0;
 						gameOver = mainMenu(gameOver);
