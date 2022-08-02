@@ -91,7 +91,9 @@ int mainMenu(int menu){
 	char Records[10000]; // Records[5]; pos1: puntaje1 , pos2: \n , pos3: puntaje2 , pos4: \n , pos5: puntaje 3
 	FILE *score;
 	extraerPuntajes(score , Records);
+
 		while(menu == INT_MIN){ //el menu se ejecuta mientras menu sea INT_MIN
+
 	    	const SDL_MessageBoxButtonData buttons[] = { //esto crea los botones
            	 	{        0, 0, "Jugar" },
             	{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Instrucciones" },
@@ -128,6 +130,7 @@ int mainMenu(int menu){
         	}
         	if (buttonid == -1) {
             	SDL_Log("no selection");
+							menu = -1;
 							SDL_Quit();
         	} else if(buttonid == 0){ //pa jugar
             	menu = 0;
@@ -164,18 +167,21 @@ int mainMenu(int menu){
                			printf("error\n");
                			return 1;
                		}
-               		if(idBoton == -1) SDL_Log("No seleccion");
+               		if(idBoton == -1){
+										SDL_Log("No seleccion");
+										menu = INT_MIN;
+									}
 
                		else if(idBoton == 1){
-           			menu = INT_MIN;
+           					menu = INT_MIN;
               		}
         		}
         	} else if(buttonid == 2){ //Récords
-    			menu = 10;
-    			while(menu == 10){ //sub menu para los records
-    				const SDL_MessageBoxButtonData botones1[] = {
+    				menu = 10;
+    				while(menu == 10){ //sub menu para los records
+    					const SDL_MessageBoxButtonData botones1[] = {
     			       	//{SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,0,"Hola"},
-    			       	{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,1,"Volver al menú"},
+    			       		{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,1,"Volver al menú"},
 
     			    };
     			    const SDL_MessageBoxColorScheme colorBotones1 = {
@@ -201,71 +207,79 @@ int mainMenu(int menu){
     			    	printf("error\n");
     			        return 1;
     			    }
-    			    if(idBoton1 == SDL_QUIT) SDL_Quit();
+    			    if(idBoton1 == -1){
+								menu = INT_MIN;
+								SDL_Quit();
+							}
 
     			    else if(idBoton1 == 1){
 
     			    	menu = INT_MIN;
     			    }
-    			}
+    				}
         	}
         	else if(buttonid == 3){ //Salir
         		menu = -1;
         		SDL_Quit();
-        	}
-        	else {
-            SDL_Quit();
-        	}
+        	}else{
+						menu = -1;
+						SDL_Quit();
+					}
     	}
     	return menu;
 }
 int menuMuerte(int gameOver){
+
 	while(gameOver == INT_MAX){
+
 		const SDL_MessageBoxButtonData botones[] = {
         	{SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,0,"Volver a Jugar"},
         	{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,1,"Volver al menú principal"},
         	{2,2,"Salir"},
-        };
-        const SDL_MessageBoxColorScheme colorBotones = {
-        	{
-        		{0,0,0}, //Fondo de MesaggeBox
-        		{255,255,255}, //Color del texto del mensaje
-        		{255,255,0},
-        		{0,0,0},
-        		{255,0,255}
-        	}
-        };
-        const SDL_MessageBoxData datosBotones = {
-        	SDL_MESSAGEBOX_INFORMATION,
-        	NULL,
-        	"Has Perdido",
-        	"Has perdido, selecciona un botón",
-        	SDL_arraysize(botones),
-        	botones,
-        	&colorBotones
-        };
-        int idBoton;
-        if(SDL_ShowMessageBox(&datosBotones , &idBoton) < 0){
-        	printf("error\n");
-        	return 1;
-        }
-        switch(idBoton){
-        	case -1:
-        		SDL_Log("No seleccion");
-        		break;
-        	case 0: //volver a jugar
-        		gameOver = CHAR_BIT;
-        		break;
-        	case 1: //volver al menú principal
-        		gameOver = INT_MIN;
-        		break;
-        	case 2: //salir
-						gameOver = CHAR_MIN;
-						SDL_Quit();
-        		break;
-        }
+    };
+    const SDL_MessageBoxColorScheme colorBotones = {
+    	{
+    		{0,0,0}, //Fondo de MesaggeBox
+    		{255,255,255}, //Color del texto del mensaje
+    		{255,255,0},
+    		{0,0,0},
+    		{255,0,255}
+    	}
+    };
+    const SDL_MessageBoxData datosBotones = {
+    	SDL_MESSAGEBOX_INFORMATION,
+    	NULL,
+    	"Has Perdido",
+    	"Has perdido, selecciona un botón",
+    	SDL_arraysize(botones),
+    	botones,
+    	&colorBotones
+    };
+    int idBoton;
+
+    if(SDL_ShowMessageBox(&datosBotones , &idBoton) < 0){
+      printf("error\n");
+      return 1;
     }
-    return gameOver;
+    switch(idBoton){
+      case -1:
+      	SDL_Log("No seleccion");
+				gameOver = CHAR_MIN;
+				SDL_Quit();
+        break;
+      case 0: //volver a jugar
+        gameOver = CHAR_BIT;
+        break;
+      case 1: //volver al menú principal
+        gameOver = INT_MIN;
+        break;
+    	case 2: //salir
+				gameOver = CHAR_MIN;
+				SDL_Quit();
+        break;
+    }
+  }
+  return gameOver;
 }
 
 int main(int argc, char* argv[]){
