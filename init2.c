@@ -291,7 +291,6 @@ int main(int argc, char* argv[]){
 	int gameOver = INT_MIN;
 	gameOver = mainMenu(gameOver);
 
-
 	if(gameOver == -1){
 		Mix_Quit();
 		SDL_Quit();
